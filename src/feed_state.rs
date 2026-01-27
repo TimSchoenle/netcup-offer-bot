@@ -161,7 +161,7 @@ mod tests_feed_states {
     use std::path::PathBuf;
 
     use chrono::Duration;
-    use tempfile::{tempdir, TempDir};
+    use tempfile::{TempDir, tempdir};
 
     use super::*;
 
