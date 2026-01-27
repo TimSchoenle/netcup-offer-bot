@@ -8,7 +8,7 @@ ARG EXECUTION_DIRECTORY=/app
 ARG BUILD_DIRECTORY=/build
 ARG BUILD_TARGET=x86_64-unknown-linux-musl
 
-FROM clux/muslrust:stable AS chef
+FROM clux/muslrust:stable@sha256:cd914f6f4d398329cd62c4b7fbeeef72390e9322dd51631ab9acdca6abb7046e AS chef
 
 # Build Environment Args
 ARG BUILD_DIRECTORY
@@ -31,7 +31,7 @@ RUN cargo chef cook --release --target $BUILD_TARGET --recipe-path recipe.json
 COPY . .
 RUN cargo build --release --target $BUILD_TARGET
 
-FROM alpine AS env
+FROM alpine@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS env
 
 # Build Environment Args
 ARG USER

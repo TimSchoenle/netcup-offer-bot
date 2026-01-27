@@ -32,10 +32,10 @@ secrecy = { version = "0.10.3", features = ["serde"] }
 config = "0.15.19"
 
 [dev-dependencies]
-temp-env = "0.3.6"
-tempfile = "3.24.0"
-serde_test = "1.0.177"
-wiremock = "0.6.5"
+temp-env = "=0.3.6"
+tempfile = "=3.24.0"
+serde_test = "=1.0.177"
+wiremock = "=0.6.5"
 
 [profile.release]
 strip = true
