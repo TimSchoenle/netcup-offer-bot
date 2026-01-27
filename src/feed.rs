@@ -4,9 +4,8 @@ use reqwest_middleware::ClientWithMiddleware;
 use rss::validation::Validate;
 use rss::Channel;
 use serde::{Deserialize, Serialize};
-use strum_macros::EnumIter;
 
-#[derive(Debug, PartialEq, EnumIter, Clone, Copy, Serialize, Deserialize, Eq, Hash)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, Hash)]
 pub enum Feed {
     Netcup,
 }
@@ -20,8 +19,12 @@ impl Feed {
 
     pub fn url(&self) -> &str {
         match self {
-            Feed::Netcup => "https://www.netcup.com/special-offers.xml?locale=de",
+            Feed::Netcup => "https://www.netcup.com/rss/deals/de",
         }
+    }
+    
+    pub fn iter() -> impl Iterator<Item = Self> {
+        [Feed::Netcup].into_iter()
     }
 
     #[tracing::instrument]

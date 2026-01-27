@@ -141,7 +141,7 @@ impl FeedState {
 
     pub fn is_before(&self, date: &DateTime<FixedOffset>) -> bool {
         self.last_update
-            .map_or(false, |last_update| *date <= last_update)
+            .is_some_and(|last_update| *date <= last_update)
     }
 
     pub fn set_last_update(&mut self, date: DateTime<Utc>) {

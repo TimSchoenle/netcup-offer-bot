@@ -5,11 +5,13 @@ pub enum Error {
     #[error("Tracing error")]
     Logger(#[from] tracing::metadata::ParseLevelError),
     #[error("Config error: {0}")]
-    ConfigVar(String),
+    ConfigVar(#[from] std::env::VarError),
     #[error("Parser error")]
     Parse(#[from] std::num::ParseIntError),
-    #[error("Rss: {0}")]
-    Rss(String),
+    #[error("Rss error: {0}")]
+    Rss(#[from] rss::Error),
+    #[error("Rss validation error: {0}")]
+    RssValidation(#[from] rss::validation::ValidationError),
     #[error("Reqwest error")]
     Reqwest(#[from] reqwest::Error),
     #[error("Reqwest middleware error")]
@@ -29,26 +31,8 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn custom(msg: String) -> Self {
-        Self::Custom(msg)
-    }
-}
-
-impl From<rss::Error> for Error {
-    fn from(err: rss::Error) -> Self {
-        Self::Rss(err.to_string())
-    }
-}
-
-impl From<rss::validation::ValidationError> for Error {
-    fn from(err: rss::validation::ValidationError) -> Self {
-        Self::Rss(err.to_string())
-    }
-}
-
-impl From<std::env::VarError> for Error {
-    fn from(err: std::env::VarError) -> Self {
-        Self::ConfigVar(err.to_string())
+    pub fn custom<T: ToString>(msg: T) -> Self {
+        Self::Custom(msg.to_string())
     }
 }
 

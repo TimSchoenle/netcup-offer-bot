@@ -24,10 +24,7 @@ const DEFAULT_LOG_LEVEL: &str = "info";
 async fn main() -> Result<()> {
     setup_tracing()?;
 
-    let dns = match env::var(ENV_SENTRY_DSN) {
-        Ok(dns) => Some(dns),
-        Err(_) => None,
-    };
+    let dns = env::var(ENV_SENTRY_DSN).ok();
     // Prevents the process from exiting until all events are sent
     let _sentry = setup_sentry(dns);
 
@@ -72,7 +69,6 @@ fn setup_sentry(dns: Option<String>) -> Option<ClientInitGuard> {
         dns,
         sentry::ClientOptions {
             release: sentry::release_name!(),
-            auto_session_tracking: true,
             traces_sample_rate: 0.2,
             attach_stacktrace: true,
             ..Default::default()
