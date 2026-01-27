@@ -1,25 +1,17 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    ":disableRateLimiting"
-  ],
-  "assigneesFromCodeOwners": true,
-  "labels": [
-    "dependencies"
+    "github>TimSchoenle/actions//configs/renovate/default"
   ],
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch",
-      "automerge": true,
       "matchPackageNames": [
-        "*"
-      ]
+        "dtolnay/rust-toolchain",
+        "lukemathwalker/cargo-chef",
+        "aquasecurity/trivy-action",
+        "taiki-e/install-action"
+      ],
+      "enabled": false
     }
   ]
 }
