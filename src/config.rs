@@ -1,5 +1,5 @@
 use crate::error::Error;
-use secrecy::SecretBox;
+use secrecy::SecretString;
 use std::net::SocketAddr;
 use std::time::Duration;
 
@@ -8,7 +8,7 @@ const DEFAULT_METRIC_PORT: u16 = 9184;
 
 #[derive(Debug, serde::Deserialize)]
 struct RawConfig {
-    web_hook: SecretBox<String>,
+    web_hook: SecretString,
     check_interval: u64,
     metric_ip: Option<String>,
     metric_port: Option<u16>,
@@ -16,7 +16,7 @@ struct RawConfig {
 
 #[derive(Debug)]
 pub struct Config {
-    pub discord_webhook_url: SecretBox<String>,
+    pub discord_webhook_url: SecretString,
     pub check_interval: Duration,
     pub metric_socket: SocketAddr,
 }
@@ -33,7 +33,7 @@ impl TryFrom<RawConfig> for Config {
         let metric_ip = match metric_ip.parse::<std::net::IpAddr>() {
             Ok(ip) => ip,
             Err(_) => {
-                return Err(Error::ConfigVar(format!(
+                return Err(Error::custom(format!(
                     "Invalid metric ip address: {metric_ip}"
                 )));
             }

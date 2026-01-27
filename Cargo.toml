@@ -1,9 +1,8 @@
 [package]
 name = "netcup-offer-bot"
 version = "1.3.1"
-edition = "2021"
+edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 path = "src/lib.rs"
 
@@ -12,34 +11,31 @@ path = "src/main.rs"
 name = "netcup-offer-bot"
 
 [dependencies]
-anyhow = { version = "1.0.71", features = ["backtrace"] }
-thiserror = "2.0"
-backtrace = "0.3.68"
-sentry = { version = "0.35.0", features = ["anyhow", "debug-images", "reqwest", "backtrace", "tracing"] }
-chrono = { version = "0.4.26", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
-webhook = "2.1.2"
-rss = { version = "2.0.4", features = ["validation"] }
-reqwest = { version = "0.12.0" }
-reqwest-middleware = "0.4.0"
-reqwest-tracing = "0.5.5"
-tokio = { version = "1", features = ["full"] }
-tokio-stream = "0.1.14"
-tracing = "0.1.37"
-tracing-subscriber = "0.3.17"
-strum = "0.26.0"
-strum_macros = "0.26"
-serde = "1.0.171"
-serde_json = "1.0.102"
-prometheus = { version = "0.13", features = ["process"] }
+anyhow = { version = "1.0.100", features = ["backtrace"] }
+thiserror = "2.0.18"
+backtrace = "0.3.76"
+sentry = { version = "0.46.1", default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
+chrono = { version = "0.4.43", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
+rss = { version = "2.0.12", features = ["validation"] }
+reqwest = { version = "0.13.1", default-features = false, features = ["json", "rustls", "stream", "gzip"] }
+reqwest-middleware = "0.5.0"
+reqwest-tracing = "0.6.0"
+tokio = { version = "1.49.0", features = ["full"] }
+tokio-stream = "0.1.18"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.22"
+serde = "1.0.228"
+serde_json = "1.0.149"
+prometheus = { version = "0.14.0", features = ["process"] }
 prometheus_exporter = "0.8.5"
-lazy_static = "1.4.0"
-secrecy = { version = "0.10.0", features = ["serde"] }
-config = "0.14.0"
+secrecy = { version = "0.10.3", features = ["serde"] }
+config = "0.15.19"
 
 [dev-dependencies]
-temp-env = "0.3.4"
-tempfile = "3.6.0"
-serde_test = "1.0.171"
+temp-env = "0.3.6"
+tempfile = "3.24.0"
+serde_test = "1.0.177"
+wiremock = "0.6.5"
 
 [profile.release]
 strip = true

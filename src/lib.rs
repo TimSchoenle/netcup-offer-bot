@@ -5,8 +5,6 @@ use std::fmt::Debug;
 
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_tracing::{SpanBackendWithUrl, TracingMiddleware};
-use secrecy::ExposeSecret;
-use strum::IntoEnumIterator;
 
 use crate::config::Config;
 use crate::discord_webhook::DiscordWebhook;
@@ -15,13 +13,13 @@ use crate::feed::Feed;
 use crate::feed_state::FeedStates;
 
 pub mod config;
-mod discord_webhook;
+pub mod discord_webhook;
 mod error;
-mod feed;
+pub mod feed;
 mod feed_state;
 mod metrics;
 
-pub type Result<T> = anyhow::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub struct FeedChecker {
@@ -44,7 +42,7 @@ impl FeedChecker {
             .with(TracingMiddleware::<SpanBackendWithUrl>::new())
             .build();
         let states = FeedStates::load().unwrap();
-        let hook = DiscordWebhook::new(config.discord_webhook_url.expose_secret());
+        let hook = DiscordWebhook::new(config.discord_webhook_url.clone());
 
         FeedChecker::new(client, states, hook)
     }
@@ -66,6 +64,10 @@ impl FeedChecker {
     pub async fn check_feed(&mut self, feed: Feed) {
         debug!("Checking feed {}", feed.name());
 
+        let _timer = metrics::get_feed_fetch_duration()
+            .with_label_values(&[feed.name()])
+            .start_timer();
+
         match feed.fetch(&self.client).await {
             Ok(feed_result) => {
                 // Filter out already sent items
@@ -79,18 +81,24 @@ impl FeedChecker {
                 debug!("Found {} new items", items.len());
 
                 // Increase metrics
-                let counter = metrics::FEED_COUNTER.with_label_values(&[feed.name()]);
+                let counter = metrics::get_feed_counter().with_label_values(&[feed.name()]);
                 counter.inc_by(items.len() as u64);
 
                 // Send feed to discord
                 for item in items {
                     if let Err(e) = self.hook.send_discord_message(&feed, item).await {
                         error!("Error sending message for feed {}: {}", feed.name(), e);
+                        metrics::get_webhook_errors()
+                            .with_label_values(&[feed.name()])
+                            .inc();
                     }
                 }
             }
             Err(e) => {
                 error!("Error fetching feed for {}: {}", feed.name(), e);
+                metrics::get_feed_fetch_errors()
+                    .with_label_values(&[feed.name()])
+                    .inc();
             }
         }
     }

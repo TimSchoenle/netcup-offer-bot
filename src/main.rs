@@ -1,19 +1,19 @@
 #[macro_use]
 extern crate tracing;
 
-use netcup_offer_bot::config::Config;
 use netcup_offer_bot::FeedChecker;
 use netcup_offer_bot::Result;
+use netcup_offer_bot::config::Config;
 use sentry::ClientInitGuard;
 use std::env;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tokio::time;
-use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
+use tokio_stream::wrappers::IntervalStream;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::{filter, Layer};
+use tracing_subscriber::{Layer, filter};
 
 const ENV_SENTRY_DSN: &str = "SENTRY_DSN";
 const ENV_LOG_LEVEL: &str = "LOG_LEVEL";
@@ -24,10 +24,7 @@ const DEFAULT_LOG_LEVEL: &str = "info";
 async fn main() -> Result<()> {
     setup_tracing()?;
 
-    let dns = match env::var(ENV_SENTRY_DSN) {
-        Ok(dns) => Some(dns),
-        Err(_) => None,
-    };
+    let dns = env::var(ENV_SENTRY_DSN).ok();
     // Prevents the process from exiting until all events are sent
     let _sentry = setup_sentry(dns);
 
@@ -72,7 +69,6 @@ fn setup_sentry(dns: Option<String>) -> Option<ClientInitGuard> {
         dns,
         sentry::ClientOptions {
             release: sentry::release_name!(),
-            auto_session_tracking: true,
             traces_sample_rate: 0.2,
             attach_stacktrace: true,
             ..Default::default()
