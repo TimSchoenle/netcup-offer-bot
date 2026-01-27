@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.4.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.3.1...v1.4.0) (2026-01-27)
+
+
+### Features
+
+* update project to correctly handle retries and new url ([#106](https://github.com/TimSchoenle/netcup-offer-bot/issues/106)) ([ff25ded](https://github.com/TimSchoenle/netcup-offer-bot/commit/ff25ded94705d4b6786f674cfb9168c713e9b661))
+
+
+### Documentation
+
+* update README to reflect github rename ([#110](https://github.com/TimSchoenle/netcup-offer-bot/issues/110)) ([8dc3ab5](https://github.com/TimSchoenle/netcup-offer-bot/commit/8dc3ab57f97c87b17809bd51fbe41fa725a58c71))
+
+
+### Build System
+
+* improve renovate ([#108](https://github.com/TimSchoenle/netcup-offer-bot/issues/108)) ([e848cae](https://github.com/TimSchoenle/netcup-offer-bot/commit/e848caef3d1803755e8eb0069c90769217c360f8))
+* migrate to new release-please config format ([#109](https://github.com/TimSchoenle/netcup-offer-bot/issues/109)) ([8adedb8](https://github.com/TimSchoenle/netcup-offer-bot/commit/8adedb8a3f55345489386877fd7a8c45d0b4fb1e))
+* modernize CI ([#111](https://github.com/TimSchoenle/netcup-offer-bot/issues/111)) ([af87761](https://github.com/TimSchoenle/netcup-offer-bot/commit/af87761b78d238a38636adf55f124b7ecddbf6ab))
+
+
+### Miscellaneous
+
+* **deps:** pin dependencies ([#112](https://github.com/TimSchoenle/netcup-offer-bot/issues/112)) ([8078c59](https://github.com/TimSchoenle/netcup-offer-bot/commit/8078c597742822b33193b09c920da4b770ec915e))
+* **deps:** update github/codeql-action action to v4.32.0 ([#115](https://github.com/TimSchoenle/netcup-offer-bot/issues/115)) ([8cea6db](https://github.com/TimSchoenle/netcup-offer-bot/commit/8cea6dbf8694a9ed35a2924e7061ee48654dbef8))
+* **deps:** update step-security/harden-runner action to v2.14.1 ([#113](https://github.com/TimSchoenle/netcup-offer-bot/issues/113)) ([2319503](https://github.com/TimSchoenle/netcup-offer-bot/commit/2319503fc5a3563df4eb331548db2f962ddb3b9b))
+* **deps:** update to vactions-helm-update-chart-version-v1.4.4 ([#114](https://github.com/TimSchoenle/netcup-offer-bot/issues/114)) ([bc47e89](https://github.com/TimSchoenle/netcup-offer-bot/commit/bc47e895a037ee0f1610a40320c7669fe1bafc4f))
+
 ## [1.3.1](https://github.com/Timmi6790/netcup-offer-bot/compare/v1.3.0...v1.3.1) (2025-01-14)
 
 
