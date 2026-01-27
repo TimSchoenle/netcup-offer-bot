@@ -4,60 +4,166 @@ on:
     branches:
       - master
 
-permissions:
-  contents: write
-  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: { }
+
+env:
+  DOCKER_REPO: timmi6790/netcup-offer-bot
+  HELM_REPO: TimSchoenle/helm-charts
+  CHART_PATH: charts/netcup-offer-bot
 
 jobs:
   release-please:
+    name: Release Please
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create release commits and tags
+      issues: write # Required to create release issues
+      pull-requests: write # Required to create release PRs
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      - uses: googleapis/release-please-action@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Generate Bot Token
+        id: generate_token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4
         id: release
         with:
-          release-type: rust
-          include-v-in-tag: false
-      # Docker Image release
+          token: ${{ steps.generate_token.outputs.token }}
+
+  docker-release:
+    name: Docker Release
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required to checkout the code
+      id-token: write # Required for OIDC authentication with Cosign
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          persist-credentials: false
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        if: ${{ steps.release.outputs.release_created }}
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        if: ${{ steps.release.outputs.release_created }}
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        if: ${{ steps.release.outputs.release_created }}
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5.6.1
-        if: ${{ steps.release.outputs.release_created }}
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
-          images: timmi6790/netcup-offer-bot
+          images: ${{ env.DOCKER_REPO }}
           tags: |
-            type=raw,value=${{ steps.release.outputs.tag_name }}
-            type=raw,value=latest
-
-      - uses: Swatinem/rust-cache@v2
-        if: ${{ steps.release.outputs.release_created }}
+            type=raw,value=${{ needs.release-please.outputs.tag_name }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
-        if: ${{ steps.release.outputs.release_created }}
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
           context: .
           push: true
+          provenance: mode=max
+          sbom: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            version=${{ steps.release.outputs.tag_name }}
-            release=${{ steps.release.outputs.tag_name }}
+            version=${{ needs.release-please.outputs.tag_name }}
+            release=${{ needs.release-please.outputs.tag_name }}
+            vendor=Timmi6790
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
+            VERSION=${{ needs.release-please.outputs.tag_name }}
+          secrets: |
+            sentry_token=${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes ${images}
+
+  sentry-release:
+    name: Sentry Release
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required to checkout the code
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          persist-credentials: false
+
+      - name: Sentry Release
+        uses: getsentry/action-release@dab6548b3c03c4717878099e43782cf5be654289 # v3.5.0
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          version: ${{ needs.release-please.outputs.tag_name }}
+          environment: production
+
+  helm-release:
+    name: Helm Release
+    needs: [ release-please, docker-release ]
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required to checkout the code
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
+        with:
+          egress-policy: audit
+
+      - uses: TimSchoenle/actions/actions/helm/update-chart-version@3681e2577797f39f46a097f92ceafd8c594cf864 # actions-helm-update-chart-version-v1.4.3
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          helm-repo: ${{ env.HELM_REPO }}
+          chart-path: ${{ env.CHART_PATH }}
+          new-tag: ${{ needs.release-please.outputs.tag_name }}
+          image-digest: ${{ needs.docker-release.outputs.image_digest }}

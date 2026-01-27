@@ -161,7 +161,7 @@ mod tests_feed_states {
     use std::path::PathBuf;
 
     use chrono::Duration;
-    use tempfile::{TempDir, tempdir};
+    use tempfile::{tempdir, TempDir};
 
     use super::*;
 
@@ -328,7 +328,7 @@ mod tests_feed_states {
         let mut expected_time = None;
         for i in 1..10 {
             let time = get_current_utc_time() + Duration::hours(i);
-            if expected_time == None || time > expected_time.unwrap() {
+            if expected_time.is_none() || time > expected_time.unwrap() {
                 expected_time = Some(time);
             }
             items.push(create_rss_item(time));
