@@ -3,20 +3,19 @@
   <h3 align="center">Netcup Offer Bot</h3>
 
   <p align="center">
-    <a href="https://github.com/Timmi6790/netcup-offer-bot/issues">Report Bug</a>
+    <a href="https://github.com/TimSchoenle/netcup-offer-bot/issues">Report Bug</a>
     .
-    <a href="https://github.com/Timmi6790/netcup-offer-bot/issues">Request Feature</a>
+    <a href="https://github.com/TimSchoenle/netcup-offer-bot/issues">Request Feature</a>
   </p>
 </p>
 
 <div align="center">
 
 ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/timmi6790/netcup-offer-bot)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Timmi6790/netcup-offer-bot/build.yml)
-![Issues](https://img.shields.io/github/issues/Timmi6790/netcup-offer-bot)
-[![codecov](https://codecov.io/gh/Timmi6790/netcup-offer-bot/branch/master/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/Timmi6790/netcup-offer-bot)
-![License](https://img.shields.io/github/license/Timmi6790/netcup-offer-bot)
-[![wakatime](https://wakatime.com/badge/github/Timmi6790/netcup-offer-bot.svg)](https://wakatime.com/badge/github/Timmi6790/netcup-offer-bot)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/TimSchoenle/netcup-offer-bot/build.yml)
+![Issues](https://img.shields.io/github/issues/TimSchoenle/netcup-offer-bot)
+[![codecov](https://codecov.io/gh/TimSchoenle/netcup-offer-bot/branch/master/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/TimSchoenle/netcup-offer-bot)
+![License](https://img.shields.io/github/license/TimSchoenle/netcup-offer-bot)
 
 </div>
 
@@ -26,7 +25,7 @@ RSS feed listener to discord webhook for https://www.netcup.com/de/deals
 
 ### Installation - Helm chart
 
-- [Helm chart](https://github.com/Timmi6790/helm-charts/tree/main/charts/netcup-offer-bot)
+- [Helm chart](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot)
 
 ### Installation - Docker
 
@@ -57,5 +56,6 @@ RSS feed listener to discord webhook for https://www.netcup.com/de/deals
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/Timmi6790/netcup-offer-bot/blob/main/LICENSE.md) for
+Distributed under the MIT License. See [LICENSE](https://github.com/TimSchoenle/netcup-offer-bot/blob/main/LICENSE.md)
+for
 more information.
