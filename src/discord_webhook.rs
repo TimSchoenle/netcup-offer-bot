@@ -6,9 +6,9 @@ use secrecy::{ExposeSecret, SecretString};
 use serde_json::json;
 use tokio::time::sleep;
 
+use crate::Result;
 use crate::error::Error;
 use crate::feed::Feed;
-use crate::Result;
 
 #[derive(Debug)]
 pub struct DiscordWebhook {

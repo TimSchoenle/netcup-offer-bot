@@ -1,19 +1,19 @@
 #[macro_use]
 extern crate tracing;
 
-use netcup_offer_bot::config::Config;
 use netcup_offer_bot::FeedChecker;
 use netcup_offer_bot::Result;
+use netcup_offer_bot::config::Config;
 use sentry::ClientInitGuard;
 use std::env;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use tokio::time;
-use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
+use tokio_stream::wrappers::IntervalStream;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::{filter, Layer};
+use tracing_subscriber::{Layer, filter};
 
 const ENV_SENTRY_DSN: &str = "SENTRY_DSN";
 const ENV_LOG_LEVEL: &str = "LOG_LEVEL";

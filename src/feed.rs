@@ -1,8 +1,8 @@
 use std::fmt;
 
 use reqwest_middleware::ClientWithMiddleware;
-use rss::validation::Validate;
 use rss::Channel;
+use rss::validation::Validate;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, Eq, Hash)]
@@ -22,7 +22,7 @@ impl Feed {
             Feed::Netcup => "https://www.netcup.com/rss/deals/de",
         }
     }
-    
+
     pub fn iter() -> impl Iterator<Item = Self> {
         [Feed::Netcup].into_iter()
     }

@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 
-use prometheus::{register_histogram_vec, register_int_counter_vec, HistogramVec, IntCounterVec};
+use prometheus::{HistogramVec, IntCounterVec, register_histogram_vec, register_int_counter_vec};
 
 pub static FEED_COUNTER: OnceLock<IntCounterVec> = OnceLock::new();
 pub static FEED_FETCH_DURATION: OnceLock<HistogramVec> = OnceLock::new();
