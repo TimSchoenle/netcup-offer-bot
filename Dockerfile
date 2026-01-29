@@ -8,7 +8,7 @@ ARG EXECUTION_DIRECTORY=/app
 ARG BUILD_DIRECTORY=/build
 ARG BUILD_TARGET=x86_64-unknown-linux-musl
 
-FROM clux/muslrust:stable@sha256:cd914f6f4d398329cd62c4b7fbeeef72390e9322dd51631ab9acdca6abb7046e AS chef
+FROM clux/muslrust:stable@sha256:b03c4059ec575186b7b62d0bce817b346c1058cc2afb31f7a1f6a1a70fdee023 AS chef
 
 # Build Environment Args
 ARG BUILD_DIRECTORY
