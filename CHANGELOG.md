@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.4.0...v1.5.0) (2026-01-30)
+
+
+### Features
+
+* modernize DockerFile ([#120](https://github.com/TimSchoenle/netcup-offer-bot/issues/120)) ([c3594e9](https://github.com/TimSchoenle/netcup-offer-bot/commit/c3594e96d0a711b42347917d84b8f6c04aa42888))
+
+
+### Miscellaneous
+
+* **deps:** update alpine docker digest to 2510918 ([#116](https://github.com/TimSchoenle/netcup-offer-bot/issues/116)) ([b27f634](https://github.com/TimSchoenle/netcup-offer-bot/commit/b27f634a020d594a6466b627cbe04abc8193a43f))
+* **deps:** update clux/muslrust:stable docker digest to b03c405 ([#119](https://github.com/TimSchoenle/netcup-offer-bot/issues/119)) ([e51239b](https://github.com/TimSchoenle/netcup-offer-bot/commit/e51239bf085a7988d6219ce86687a46a4e5c0ce9))
+* **deps:** update docker/login-action digest to c94ce9f ([#118](https://github.com/TimSchoenle/netcup-offer-bot/issues/118)) ([1afe8a6](https://github.com/TimSchoenle/netcup-offer-bot/commit/1afe8a6b0525cb09438893786277cfb0607f6f16))
+
 ## [1.4.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.3.1...v1.4.0) (2026-01-27)
 
 
