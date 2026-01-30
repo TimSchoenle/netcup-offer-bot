@@ -10,30 +10,45 @@ ARG BUILD_TARGET=x86_64-unknown-linux-musl
 FROM lukemathwalker/cargo-chef:latest-rust-alpine AS chef
 ARG EXECUTION_DIRECTORY
 
-RUN apk add --no-cache musl-dev pkgconfig openssl-dev openssl-libs-static upx curl jq
-# Install sentry-cli
-RUN LATEST_VERSION=$(curl -s https://api.github.com/repos/getsentry/sentry-cli/releases/latest | jq -r .tag_name) && \
-    wget -qO /usr/local/bin/sentry-cli "https://downloads.sentry-cdn.com/sentry-cli/${LATEST_VERSION}/sentry-cli-Linux-x86_64" && \
+RUN apk add --no-cache \
+    curl \
+    jq \
+    musl-dev \
+    openssl-dev \
+    openssl-libs-static \
+    pkgconfig \
+    upx && \
+    LATEST_VERSION=$(curl -s https://api.github.com/repos/getsentry/sentry-cli/releases/latest | jq -r .tag_name) && \
+    curl -fsSL "https://downloads.sentry-cdn.com/sentry-cli/${LATEST_VERSION}/sentry-cli-Linux-x86_64" -o /usr/local/bin/sentry-cli && \
     chmod +x /usr/local/bin/sentry-cli
+
 WORKDIR ${EXECUTION_DIRECTORY}
 
 FROM chef AS planner
-COPY  . .
+COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 
 ARG BUILD_TARGET
 ARG EXECUTION_DIRECTORY
-ARG BUILD_TARGET
 ARG BINARY_NAME
 
-COPY --from=planner  /app/recipe.json recipe.json
-RUN cargo chef cook --release --target ${BUILD_TARGET} --recipe-path recipe.json
+COPY --from=planner /app/recipe.json recipe.json
 
-COPY  . .
+# Use cargo cache mount for faster dependency builds
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo chef cook --release --target ${BUILD_TARGET} --recipe-path recipe.json
 
-RUN cargo build --release --target ${BUILD_TARGET}
+COPY . .
+
+# Use cargo cache and target cache for faster builds
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target \
+    cargo build --release --target ${BUILD_TARGET} && \
+    cp ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME} /tmp/${BINARY_NAME}
 
 # Upload debug symbols to Sentry before stripping
 ARG SENTRY_ORG
@@ -41,38 +56,38 @@ ARG SENTRY_PROJECT
 ARG VERSION
 
 RUN --mount=type=secret,id=sentry_token \
+    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target \
     if [ -f /run/secrets/sentry_token ]; then \
         sentry-cli debug-files upload \
             --auth-token $(cat /run/secrets/sentry_token) \
             --org ${SENTRY_ORG} \
             --project ${SENTRY_PROJECT} \
             --include-sources \
-            $EXECUTION_DIRECTORY/target/$BUILD_TARGET/release/$BINARY_NAME; \
+            ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME}; \
     fi
 
 # Strip and compress after uploading symbols
-RUN strip --strip-all $EXECUTION_DIRECTORY/target/$BUILD_TARGET/release/$BINARY_NAME && \
-    upx --best --lzma $EXECUTION_DIRECTORY/target/$BUILD_TARGET/release/$BINARY_NAME
+RUN strip --strip-all /tmp/${BINARY_NAME} && \
+    upx --best --lzma /tmp/${BINARY_NAME}
 
 FROM alpine:3.23@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS env
 ARG USER_ID
 
 # mailcap is used for content type (MIME type) detection
 # tzdata is used for timezones info
-RUN apk update && \
-    apk upgrade --no-cache && \
-    apk add --no-cache ca-certificates mailcap tzdata
-
-RUN update-ca-certificates
-
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${USER_ID}" \
-    "appuser"
+RUN apk add --no-cache \
+    ca-certificates \
+    mailcap \
+    tzdata && \
+    update-ca-certificates && \
+    adduser \
+        --disabled-password \
+        --gecos "" \
+        --home "/nonexistent" \
+        --shell "/sbin/nologin" \
+        --no-create-home \
+        --uid "${USER_ID}" \
+        "appuser"
 
 FROM scratch AS runtime
 
@@ -81,7 +96,6 @@ ARG BINARY_NAME
 ARG USER_ID
 ARG GROUP_ID
 ARG EXECUTION_DIRECTORY
-ARG BUILD_TARGET
 
 ARG version=unknown
 ARG release=unreleased
@@ -89,14 +103,14 @@ ARG release=unreleased
 LABEL version=${version} \
       release=${release}
 
-COPY --from=env  /etc/passwd /etc/passwd
-COPY --from=env  /etc/group /etc/group
-COPY --from=env  /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=env  /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=env /etc/passwd /etc/passwd
+COPY --from=env /etc/group /etc/group
+COPY --from=env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=env /usr/share/zoneinfo /usr/share/zoneinfo
 
-WORKDIR $EXECUTION_DIRECTORY
-COPY --from=builder --chmod=555 $EXECUTION_DIRECTORY/target/$BUILD_TARGET/release/$BINARY_NAME ./app
+WORKDIR ${EXECUTION_DIRECTORY}
+COPY --from=builder --chmod=555 /tmp/${BINARY_NAME} ./app
 
-USER $USER_ID:$GROUP_ID
+USER ${USER_ID}:${GROUP_ID}
 
 ENTRYPOINT ["./app"]
