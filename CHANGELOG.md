@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.0...v1.5.1) (2026-01-30)
+
+
+### Miscellaneous
+
+* **deps:** update alpine:3.23 docker digest to 2510918 ([#121](https://github.com/TimSchoenle/netcup-offer-bot/issues/121)) ([119d78f](https://github.com/TimSchoenle/netcup-offer-bot/commit/119d78f293655cb8f41f0c666ad50d4eddd067c6))
+* **deps:** update docker/dockerfile docker tag to v1.21 ([#122](https://github.com/TimSchoenle/netcup-offer-bot/issues/122)) ([21d4b54](https://github.com/TimSchoenle/netcup-offer-bot/commit/21d4b544c6f25e29ce1265ed89eb4014d4df0ea4))
+
 ## [1.5.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.4.0...v1.5.0) (2026-01-30)
 
 
