@@ -55,16 +55,20 @@ ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 ARG VERSION
 
-RUN --mount=type=secret,id=sentry_token \
-    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target \
-    if [ -f /run/secrets/sentry_token ]; then \
+RUN --mount=type=secret,id=sentry_token,env=SENTRY_AUTH_TOKEN \
+    sh -eu -c '\
+      if [ -n "${SENTRY_AUTH_TOKEN:-}" ] && [ -n "${SENTRY_ORG:-}" ] && [ -n "${SENTRY_PROJECT:-}" ]; then \
+        echo "Uploading source map to Sentry." ; \
         sentry-cli debug-files upload \
-            --auth-token $(cat /run/secrets/sentry_token) \
-            --org ${SENTRY_ORG} \
-            --project ${SENTRY_PROJECT} \
-            --include-sources \
-            ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME}; \
-    fi
+          --auth-token "${SENTRY_AUTH_TOKEN}" \
+          --org "${SENTRY_ORG}" \
+          --project "${SENTRY_PROJECT}" \
+          --include-sources \
+          "${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME}" ; \
+      else \
+        echo "Skipping Sentry upload (missing token and/or org/project args)" ; \
+      fi \
+    '
 
 # Strip and compress after uploading symbols
 RUN strip --strip-all /tmp/${BINARY_NAME} && \
