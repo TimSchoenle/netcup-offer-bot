@@ -38,6 +38,6 @@ serde_test = "=1.0.177"
 wiremock = "=0.6.5"
 
 [profile.release]
-strip = true
 lto = true
 codegen-units = 1
+debug = true
