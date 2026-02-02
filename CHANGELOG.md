@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.5.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.0...v1.5.1) (2026-02-02)
+
+
+### Bug Fixes
+
+* **Docker:** try to fix sentry source map uploads ([#134](https://github.com/TimSchoenle/netcup-offer-bot/issues/134)) ([c4625fb](https://github.com/TimSchoenle/netcup-offer-bot/commit/c4625fbc75adbc7880420d771c8436942eee5ccd))
+
+
+### Miscellaneous
+
+* **deps:** update alpine:3.23 docker digest to 2510918 ([#121](https://github.com/TimSchoenle/netcup-offer-bot/issues/121)) ([119d78f](https://github.com/TimSchoenle/netcup-offer-bot/commit/119d78f293655cb8f41f0c666ad50d4eddd067c6))
+* **deps:** update docker/dockerfile docker tag to v1.21 ([#122](https://github.com/TimSchoenle/netcup-offer-bot/issues/122)) ([21d4b54](https://github.com/TimSchoenle/netcup-offer-bot/commit/21d4b544c6f25e29ce1265ed89eb4014d4df0ea4))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#124](https://github.com/TimSchoenle/netcup-offer-bot/issues/124)) ([8073631](https://github.com/TimSchoenle/netcup-offer-bot/commit/8073631a9828f3d190dabe33eb01c92051dbb520))
+* **deps:** lock file maintenance ([#125](https://github.com/TimSchoenle/netcup-offer-bot/issues/125)) ([eb3b8dd](https://github.com/TimSchoenle/netcup-offer-bot/commit/eb3b8ddd260a63da24328fa31789b3de932e3d03))
+* **deps:** lock file maintenance ([#126](https://github.com/TimSchoenle/netcup-offer-bot/issues/126)) ([c04472c](https://github.com/TimSchoenle/netcup-offer-bot/commit/c04472ca793cd4d9e3bf9a07455b7f95d85182b4))
+* **deps:** lock file maintenance ([#127](https://github.com/TimSchoenle/netcup-offer-bot/issues/127)) ([2d8562d](https://github.com/TimSchoenle/netcup-offer-bot/commit/2d8562d9047d8d40ebd6ee76b3aa00550f94459c))
+* **deps:** lock file maintenance ([#128](https://github.com/TimSchoenle/netcup-offer-bot/issues/128)) ([80e0d9c](https://github.com/TimSchoenle/netcup-offer-bot/commit/80e0d9c8583825f6a277d6a866bde8d9b21b9c1b))
+* **deps:** lock file maintenance ([#129](https://github.com/TimSchoenle/netcup-offer-bot/issues/129)) ([fe56cac](https://github.com/TimSchoenle/netcup-offer-bot/commit/fe56cac69e879442a0481cdaa2e54e7136b90f24))
+* **deps:** lock file maintenance ([#130](https://github.com/TimSchoenle/netcup-offer-bot/issues/130)) ([53d1007](https://github.com/TimSchoenle/netcup-offer-bot/commit/53d1007e546ed84e3668e00b857dcd759aed494c))
+* **deps:** lock file maintenance ([#131](https://github.com/TimSchoenle/netcup-offer-bot/issues/131)) ([afb578c](https://github.com/TimSchoenle/netcup-offer-bot/commit/afb578c36ac80d35ab3a10ea9cef69958daa9d03))
+* **deps:** lock file maintenance ([#132](https://github.com/TimSchoenle/netcup-offer-bot/issues/132)) ([a50de77](https://github.com/TimSchoenle/netcup-offer-bot/commit/a50de77ca03b74286a373ae5fa0d9d2230c90651))
+* **deps:** lock file maintenance ([#133](https://github.com/TimSchoenle/netcup-offer-bot/issues/133)) ([1bfe1d1](https://github.com/TimSchoenle/netcup-offer-bot/commit/1bfe1d18b52db7d93a5b1351b5dd0b29612fa0c9))
+
 ## [1.5.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.4.0...v1.5.0) (2026-01-30)
 
 
