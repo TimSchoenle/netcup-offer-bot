@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.2](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.1...v1.5.2) (2026-02-08)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate reqwest-tracing to 0.7.0 ([#142](https://github.com/TimSchoenle/netcup-offer-bot/issues/142)) ([0b69278](https://github.com/TimSchoenle/netcup-offer-bot/commit/0b692780df30cdcc96bb5afea910f52a18e7e71e))
+
+
+### Miscellaneous
+
+* **deps:** update actions/checkout digest to de0fac2 ([#136](https://github.com/TimSchoenle/netcup-offer-bot/issues/136)) ([7608228](https://github.com/TimSchoenle/netcup-offer-bot/commit/760822852f5b275c4e2bf9f78743a8039f8d601c))
+* **deps:** update github/codeql-action action to v4.32.1 ([#135](https://github.com/TimSchoenle/netcup-offer-bot/issues/135)) ([5423011](https://github.com/TimSchoenle/netcup-offer-bot/commit/5423011fe056f6c9aace66bd32e5e75d641580ac))
+* **deps:** update github/codeql-action action to v4.32.2 ([#140](https://github.com/TimSchoenle/netcup-offer-bot/issues/140)) ([7b052ed](https://github.com/TimSchoenle/netcup-offer-bot/commit/7b052ed08516cc81fd0ba0cb41f7e1bedd24555c))
+* **deps:** update rust crate anyhow to v1.0.101 ([#143](https://github.com/TimSchoenle/netcup-offer-bot/issues/143)) ([856b42e](https://github.com/TimSchoenle/netcup-offer-bot/commit/856b42e593dfd5cb4a6023669289f30c31508c81))
+* **deps:** update rust crate reqwest to v0.13.2 ([#144](https://github.com/TimSchoenle/netcup-offer-bot/issues/144)) ([411b074](https://github.com/TimSchoenle/netcup-offer-bot/commit/411b074eac17955cf325c5b15e997322b3791f6b))
+* **deps:** update rust crate reqwest-middleware to v0.5.1 ([#141](https://github.com/TimSchoenle/netcup-offer-bot/issues/141)) ([4f53166](https://github.com/TimSchoenle/netcup-offer-bot/commit/4f5316679fa6d8963585d26a99cb18942df95bde))
+* **deps:** update rust crate sentry to v0.46.2 ([#138](https://github.com/TimSchoenle/netcup-offer-bot/issues/138)) ([ec473ee](https://github.com/TimSchoenle/netcup-offer-bot/commit/ec473eed3fad8e4015e052d5a80f33154a216f0b))
+* **deps:** update step-security/harden-runner action to v2.14.2 ([#145](https://github.com/TimSchoenle/netcup-offer-bot/issues/145)) ([b7b97e8](https://github.com/TimSchoenle/netcup-offer-bot/commit/b7b97e81cbf76138418c61e918ddb02b0ce8d751))
+* **deps:** update to vactions-helm-update-chart-version-v1.4.5 ([#146](https://github.com/TimSchoenle/netcup-offer-bot/issues/146)) ([7b7c932](https://github.com/TimSchoenle/netcup-offer-bot/commit/7b7c93264509dd3c01408a039a632adb5de6036f))
+* **deps:** update zizmorcore/zizmor-action action to v0.5.0 ([#139](https://github.com/TimSchoenle/netcup-offer-bot/issues/139)) ([e6a3f15](https://github.com/TimSchoenle/netcup-offer-bot/commit/e6a3f15549a6222bee41342f627297cd76ccd6f1))
+
 ## [1.5.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.0...v1.5.1) (2026-02-02)
 
 
