@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.5.2](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.1...v1.5.2) (2026-02-10)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate reqwest-tracing to 0.7.0 ([#142](https://github.com/TimSchoenle/netcup-offer-bot/issues/142)) ([0b69278](https://github.com/TimSchoenle/netcup-offer-bot/commit/0b692780df30cdcc96bb5afea910f52a18e7e71e))
+
+
+### Miscellaneous
+
+* **deps:** update actions/checkout digest to de0fac2 ([#136](https://github.com/TimSchoenle/netcup-offer-bot/issues/136)) ([7608228](https://github.com/TimSchoenle/netcup-offer-bot/commit/760822852f5b275c4e2bf9f78743a8039f8d601c))
+* **deps:** update github/codeql-action action to v4.32.1 ([#135](https://github.com/TimSchoenle/netcup-offer-bot/issues/135)) ([5423011](https://github.com/TimSchoenle/netcup-offer-bot/commit/5423011fe056f6c9aace66bd32e5e75d641580ac))
+* **deps:** update github/codeql-action action to v4.32.2 ([#140](https://github.com/TimSchoenle/netcup-offer-bot/issues/140)) ([7b052ed](https://github.com/TimSchoenle/netcup-offer-bot/commit/7b052ed08516cc81fd0ba0cb41f7e1bedd24555c))
+* **deps:** update rust crate anyhow to v1.0.101 ([#143](https://github.com/TimSchoenle/netcup-offer-bot/issues/143)) ([856b42e](https://github.com/TimSchoenle/netcup-offer-bot/commit/856b42e593dfd5cb4a6023669289f30c31508c81))
+* **deps:** update rust crate reqwest to v0.13.2 ([#144](https://github.com/TimSchoenle/netcup-offer-bot/issues/144)) ([411b074](https://github.com/TimSchoenle/netcup-offer-bot/commit/411b074eac17955cf325c5b15e997322b3791f6b))
+* **deps:** update rust crate reqwest-middleware to v0.5.1 ([#141](https://github.com/TimSchoenle/netcup-offer-bot/issues/141)) ([4f53166](https://github.com/TimSchoenle/netcup-offer-bot/commit/4f5316679fa6d8963585d26a99cb18942df95bde))
+* **deps:** update rust crate sentry to v0.46.2 ([#138](https://github.com/TimSchoenle/netcup-offer-bot/issues/138)) ([ec473ee](https://github.com/TimSchoenle/netcup-offer-bot/commit/ec473eed3fad8e4015e052d5a80f33154a216f0b))
+* **deps:** update rust crate tempfile to v3.25.0 ([#161](https://github.com/TimSchoenle/netcup-offer-bot/issues/161)) ([4c07d22](https://github.com/TimSchoenle/netcup-offer-bot/commit/4c07d22a4bd33889917a860e57de3c85b2a49464))
+* **deps:** update step-security/harden-runner action to v2.14.2 ([#145](https://github.com/TimSchoenle/netcup-offer-bot/issues/145)) ([b7b97e8](https://github.com/TimSchoenle/netcup-offer-bot/commit/b7b97e81cbf76138418c61e918ddb02b0ce8d751))
+* **deps:** update to vactions-helm-update-chart-version-v1.4.5 ([#146](https://github.com/TimSchoenle/netcup-offer-bot/issues/146)) ([7b7c932](https://github.com/TimSchoenle/netcup-offer-bot/commit/7b7c93264509dd3c01408a039a632adb5de6036f))
+* **deps:** update to vworkflows-maintenance-auto-approve-renovate-v1.3.0 ([#160](https://github.com/TimSchoenle/netcup-offer-bot/issues/160)) ([d5e8b01](https://github.com/TimSchoenle/netcup-offer-bot/commit/d5e8b01e659403eb77c9a4941db1e1e55cd33181))
+* **deps:** update zizmorcore/zizmor-action action to v0.5.0 ([#139](https://github.com/TimSchoenle/netcup-offer-bot/issues/139)) ([e6a3f15](https://github.com/TimSchoenle/netcup-offer-bot/commit/e6a3f15549a6222bee41342f627297cd76ccd6f1))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#147](https://github.com/TimSchoenle/netcup-offer-bot/issues/147)) ([abe301f](https://github.com/TimSchoenle/netcup-offer-bot/commit/abe301fe9647a4abe65c26890e6dc9fc088303e1))
+* **deps:** lock file maintenance ([#148](https://github.com/TimSchoenle/netcup-offer-bot/issues/148)) ([d4fc582](https://github.com/TimSchoenle/netcup-offer-bot/commit/d4fc5824f2fa380986f49249215fe9bf3dcb426a))
+* **deps:** lock file maintenance ([#149](https://github.com/TimSchoenle/netcup-offer-bot/issues/149)) ([d3056cc](https://github.com/TimSchoenle/netcup-offer-bot/commit/d3056cc0ec287a17cab59eee02585072b64bda84))
+* **deps:** lock file maintenance ([#150](https://github.com/TimSchoenle/netcup-offer-bot/issues/150)) ([1e86cb8](https://github.com/TimSchoenle/netcup-offer-bot/commit/1e86cb8224651bff8b4df58cfe0bc90601d4bb75))
+* **deps:** lock file maintenance ([#151](https://github.com/TimSchoenle/netcup-offer-bot/issues/151)) ([58b545a](https://github.com/TimSchoenle/netcup-offer-bot/commit/58b545aace183e659a28dab247da78fa71ef7d37))
+* **deps:** lock file maintenance ([#152](https://github.com/TimSchoenle/netcup-offer-bot/issues/152)) ([eb73ee4](https://github.com/TimSchoenle/netcup-offer-bot/commit/eb73ee477ff5f39421d8d036f7b050bed7813a64))
+* **deps:** lock file maintenance ([#153](https://github.com/TimSchoenle/netcup-offer-bot/issues/153)) ([b7ba2fd](https://github.com/TimSchoenle/netcup-offer-bot/commit/b7ba2fdaf6fd5f14ee10f8c8561fb8f9b0f0eeb5))
+* **deps:** lock file maintenance ([#154](https://github.com/TimSchoenle/netcup-offer-bot/issues/154)) ([44c64fa](https://github.com/TimSchoenle/netcup-offer-bot/commit/44c64fa856412c05cb0fb86c78bf10200a3236b7))
+* **deps:** lock file maintenance ([#155](https://github.com/TimSchoenle/netcup-offer-bot/issues/155)) ([6a24a68](https://github.com/TimSchoenle/netcup-offer-bot/commit/6a24a68c8ce50faef7b5a042caf3c172c54eccaf))
+* **deps:** lock file maintenance ([#156](https://github.com/TimSchoenle/netcup-offer-bot/issues/156)) ([f960dcd](https://github.com/TimSchoenle/netcup-offer-bot/commit/f960dcdc66cbebf103ea726b95b82452042bd917))
+* **deps:** lock file maintenance ([#157](https://github.com/TimSchoenle/netcup-offer-bot/issues/157)) ([4a352d9](https://github.com/TimSchoenle/netcup-offer-bot/commit/4a352d9a7af984a885120f95658fcd7a9d554398))
+* **deps:** lock file maintenance ([#158](https://github.com/TimSchoenle/netcup-offer-bot/issues/158)) ([43fddb8](https://github.com/TimSchoenle/netcup-offer-bot/commit/43fddb841056eb39851b36a5047594bca4c99a29))
+* **deps:** lock file maintenance ([#159](https://github.com/TimSchoenle/netcup-offer-bot/issues/159)) ([1981a56](https://github.com/TimSchoenle/netcup-offer-bot/commit/1981a562699b5643bf51163558a65250821d55b9))
+
 ## [1.5.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.0...v1.5.1) (2026-02-02)
 
 
