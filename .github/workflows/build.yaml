@@ -47,7 +47,7 @@ jobs:
     permissions:
       contents: read # Required to checkout the code
       checks: write # Required to annotate the commit with clippy warnings
-    uses: TimSchoenle/actions/.github/workflows/rust-clippy.yaml@1a99a0b6267fad9f94b53277f3911c8d64f78026 # workflows-rust-clippy-v1.1.1
+    uses: TimSchoenle/actions/.github/workflows/rust-clippy.yaml@0139849aaaac592ebf44af62ca1b469632172737 # workflows-rust-clippy-v1.1.2
 
   docker-build-test:
     name: Docker Build and Test
