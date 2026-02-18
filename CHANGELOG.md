@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.5.3](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.2...v1.5.3) (2026-02-16)
+
+
+### Build System
+
+* always run full CI tests for better auto merge renovate setup ([235e0d6](https://github.com/TimSchoenle/netcup-offer-bot/commit/235e0d660e02b3dd50675002cb4071255c7e4674))
+
+
+### Miscellaneous
+
+* **deps:** update all non-major action updates ([#167](https://github.com/TimSchoenle/netcup-offer-bot/issues/167)) ([fe69a22](https://github.com/TimSchoenle/netcup-offer-bot/commit/fe69a2240e362f23ad9282c77a4b8244fc66c764))
+* **deps:** update all non-major action updates ([#170](https://github.com/TimSchoenle/netcup-offer-bot/issues/170)) ([2d078e8](https://github.com/TimSchoenle/netcup-offer-bot/commit/2d078e860a5c66e72f7d38ee19295e782573f9bd))
+* **deps:** update docker/build-push-action digest to 10e90e3 ([#165](https://github.com/TimSchoenle/netcup-offer-bot/issues/165)) ([a5549f1](https://github.com/TimSchoenle/netcup-offer-bot/commit/a5549f1c837bcdc9fa183e04925da0c03decf860))
+* **deps:** update docker/build-push-action digest to 601a80b ([#164](https://github.com/TimSchoenle/netcup-offer-bot/issues/164)) ([350da37](https://github.com/TimSchoenle/netcup-offer-bot/commit/350da37bd05a3c6ff593f614f128ee4987838586))
+* **deps:** update docker/build-push-action digest to ee4ca42 ([#162](https://github.com/TimSchoenle/netcup-offer-bot/issues/162)) ([f856eea](https://github.com/TimSchoenle/netcup-offer-bot/commit/f856eeaf03a2d9ffc42f8be812e16ef9af583a1a))
+* **deps:** update to vactions-helm-update-chart-version-v1.5.0 ([#166](https://github.com/TimSchoenle/netcup-offer-bot/issues/166)) ([7dd4631](https://github.com/TimSchoenle/netcup-offer-bot/commit/7dd4631c26c81941ffbe20a3d2d5e5b45b3a19ce))
+* **deps:** update to vworkflows-rust-auto-format-v1.1.2 ([#169](https://github.com/TimSchoenle/netcup-offer-bot/issues/169)) ([d4890fe](https://github.com/TimSchoenle/netcup-offer-bot/commit/d4890fe9bbc3bd2e11ca5db0b6153e83824d8484))
+* **deps:** update to vworkflows-rust-clippy-v1.1.2 ([#168](https://github.com/TimSchoenle/netcup-offer-bot/issues/168)) ([fca4aa1](https://github.com/TimSchoenle/netcup-offer-bot/commit/fca4aa1549fedde1b46cd4a865563859a1ed0734))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#171](https://github.com/TimSchoenle/netcup-offer-bot/issues/171)) ([1d52c58](https://github.com/TimSchoenle/netcup-offer-bot/commit/1d52c58549c24d804725131e92031e0bd03e36b6))
+* **deps:** lock file maintenance ([#172](https://github.com/TimSchoenle/netcup-offer-bot/issues/172)) ([416c518](https://github.com/TimSchoenle/netcup-offer-bot/commit/416c518ea2626ded1b14e5eff63b484b69b5ec2d))
+* **deps:** lock file maintenance ([#173](https://github.com/TimSchoenle/netcup-offer-bot/issues/173)) ([bfcfc92](https://github.com/TimSchoenle/netcup-offer-bot/commit/bfcfc9208c15ea909e3536ddcf081565bfa7cd53))
+
 ## [1.5.2](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.1...v1.5.2) (2026-02-10)
 
 
