@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.5.4](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.3...v1.5.4) (2026-02-27)
+
+
+### Build System
+
+* update trivy action to 0.34.1 ([7ad8574](https://github.com/TimSchoenle/netcup-offer-bot/commit/7ad85746bb2e06798d06484c9a2f761cc48da69d))
+
+
+### Miscellaneous
+
+* **deps:** update all non-major action updates ([#175](https://github.com/TimSchoenle/netcup-offer-bot/issues/175)) ([11d26c6](https://github.com/TimSchoenle/netcup-offer-bot/commit/11d26c607a0fe68fdf2d020b035ffbdeb06e13f2))
+* **deps:** update rust crate chrono to v0.4.44 ([#177](https://github.com/TimSchoenle/netcup-offer-bot/issues/177)) ([59bbf36](https://github.com/TimSchoenle/netcup-offer-bot/commit/59bbf36c02c45cdc9d67b46331126231e8959750))
+* **deps:** update rust crate tempfile to v3.26.0 ([#178](https://github.com/TimSchoenle/netcup-offer-bot/issues/178)) ([de1d529](https://github.com/TimSchoenle/netcup-offer-bot/commit/de1d52950859688985b047aeedab525ff83fbb22))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#176](https://github.com/TimSchoenle/netcup-offer-bot/issues/176)) ([6eb8a09](https://github.com/TimSchoenle/netcup-offer-bot/commit/6eb8a093f540436fde7f7435405b6d2a5c1f8f95))
+
 ## [1.5.3](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.2...v1.5.3) (2026-02-16)
 
 
