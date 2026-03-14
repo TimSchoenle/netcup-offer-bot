@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.6](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.5...v1.5.6) (2026-03-14)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate sentry to 0.47.0 ([#205](https://github.com/TimSchoenle/netcup-offer-bot/issues/205)) ([f791bcb](https://github.com/TimSchoenle/netcup-offer-bot/commit/f791bcb55628bad97c4fb28aac9f5a49ac6874bb))
+
+
+### Miscellaneous
+
+* **deps:** update actions/create-github-app-token action to v2.2.2 ([#213](https://github.com/TimSchoenle/netcup-offer-bot/issues/213)) ([b6e0a64](https://github.com/TimSchoenle/netcup-offer-bot/commit/b6e0a643dcdc0250ccb344da55a870d88a36c7ea))
+* **deps:** update actions/create-github-app-token action to v3 ([#214](https://github.com/TimSchoenle/netcup-offer-bot/issues/214)) ([4dba610](https://github.com/TimSchoenle/netcup-offer-bot/commit/4dba610e40b94463ed9e6487dd8d44890303ff58))
+* **deps:** update all non-major action updates ([#210](https://github.com/TimSchoenle/netcup-offer-bot/issues/210)) ([10fccc3](https://github.com/TimSchoenle/netcup-offer-bot/commit/10fccc3c9a805222746a513d55e2b13a81e396ef))
+* **deps:** update all non-major action updates ([#212](https://github.com/TimSchoenle/netcup-offer-bot/issues/212)) ([86a6728](https://github.com/TimSchoenle/netcup-offer-bot/commit/86a672832c92da2789e5e8e507b68d1fd455c97d))
+* **deps:** update rust crate config to v0.15.21 ([#208](https://github.com/TimSchoenle/netcup-offer-bot/issues/208)) ([f8ecdda](https://github.com/TimSchoenle/netcup-offer-bot/commit/f8ecddadc730d3ca5e22927a4aff4fa35d26dddb))
+* **deps:** update rust crate tempfile to v3.27.0 ([#207](https://github.com/TimSchoenle/netcup-offer-bot/issues/207)) ([25d6e33](https://github.com/TimSchoenle/netcup-offer-bot/commit/25d6e33d4bd96f5b5d5126c72bf5d373041333ef))
+* **deps:** update rust crate tracing-subscriber to v0.3.23 ([#211](https://github.com/TimSchoenle/netcup-offer-bot/issues/211)) ([e9e7214](https://github.com/TimSchoenle/netcup-offer-bot/commit/e9e7214908c6ff13c14b41e42ce463ba2ab832fe))
+* **deps:** update sigstore/cosign-installer action to v4.1.0 ([#203](https://github.com/TimSchoenle/netcup-offer-bot/issues/203)) ([317af69](https://github.com/TimSchoenle/netcup-offer-bot/commit/317af69a8f8ed2d8fb21cb3b72c5d82f4908bba8))
+* **deps:** update to vworkflows-rust-cargo-check-v1.1.6 ([#209](https://github.com/TimSchoenle/netcup-offer-bot/issues/209)) ([6004960](https://github.com/TimSchoenle/netcup-offer-bot/commit/60049609aa18babfae5b1d12523a0a4c18459f4f))
+* **deps:** update to vworkflows-rust-coverage-codecov-v1.0.6 ([#206](https://github.com/TimSchoenle/netcup-offer-bot/issues/206)) ([2828a52](https://github.com/TimSchoenle/netcup-offer-bot/commit/2828a5282012f894870eb70baa5323d275bdccc6))
+
 ## [1.5.5](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.4...v1.5.5) (2026-03-09)
 
 
