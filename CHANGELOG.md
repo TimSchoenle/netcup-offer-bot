@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.5.6](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.5...v1.5.6) (2026-03-16)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate sentry to 0.47.0 ([#205](https://github.com/TimSchoenle/netcup-offer-bot/issues/205)) ([f791bcb](https://github.com/TimSchoenle/netcup-offer-bot/commit/f791bcb55628bad97c4fb28aac9f5a49ac6874bb))
+
+
+### Miscellaneous
+
+* **deps:** update actions/create-github-app-token action to v2.2.2 ([#213](https://github.com/TimSchoenle/netcup-offer-bot/issues/213)) ([b6e0a64](https://github.com/TimSchoenle/netcup-offer-bot/commit/b6e0a643dcdc0250ccb344da55a870d88a36c7ea))
+* **deps:** update actions/create-github-app-token action to v3 ([#214](https://github.com/TimSchoenle/netcup-offer-bot/issues/214)) ([4dba610](https://github.com/TimSchoenle/netcup-offer-bot/commit/4dba610e40b94463ed9e6487dd8d44890303ff58))
+* **deps:** update all non-major action updates ([#210](https://github.com/TimSchoenle/netcup-offer-bot/issues/210)) ([10fccc3](https://github.com/TimSchoenle/netcup-offer-bot/commit/10fccc3c9a805222746a513d55e2b13a81e396ef))
+* **deps:** update all non-major action updates ([#212](https://github.com/TimSchoenle/netcup-offer-bot/issues/212)) ([86a6728](https://github.com/TimSchoenle/netcup-offer-bot/commit/86a672832c92da2789e5e8e507b68d1fd455c97d))
+* **deps:** update github/codeql-action action to v4.33.0 ([#220](https://github.com/TimSchoenle/netcup-offer-bot/issues/220)) ([cd6f90c](https://github.com/TimSchoenle/netcup-offer-bot/commit/cd6f90c83e891c0de62b4a98580edc2ee4149061))
+* **deps:** update rust crate config to v0.15.21 ([#208](https://github.com/TimSchoenle/netcup-offer-bot/issues/208)) ([f8ecdda](https://github.com/TimSchoenle/netcup-offer-bot/commit/f8ecddadc730d3ca5e22927a4aff4fa35d26dddb))
+* **deps:** update rust crate tempfile to v3.27.0 ([#207](https://github.com/TimSchoenle/netcup-offer-bot/issues/207)) ([25d6e33](https://github.com/TimSchoenle/netcup-offer-bot/commit/25d6e33d4bd96f5b5d5126c72bf5d373041333ef))
+* **deps:** update rust crate tracing-subscriber to v0.3.23 ([#211](https://github.com/TimSchoenle/netcup-offer-bot/issues/211)) ([e9e7214](https://github.com/TimSchoenle/netcup-offer-bot/commit/e9e7214908c6ff13c14b41e42ce463ba2ab832fe))
+* **deps:** update sigstore/cosign-installer action to v4.1.0 ([#203](https://github.com/TimSchoenle/netcup-offer-bot/issues/203)) ([317af69](https://github.com/TimSchoenle/netcup-offer-bot/commit/317af69a8f8ed2d8fb21cb3b72c5d82f4908bba8))
+* **deps:** update step-security/harden-runner action to v2.16.0 ([#219](https://github.com/TimSchoenle/netcup-offer-bot/issues/219)) ([b2c988d](https://github.com/TimSchoenle/netcup-offer-bot/commit/b2c988d7ca07a6186fc43cc31daccf6ec29cb3a1))
+* **deps:** update to vworkflows-rust-cargo-check-v1.1.6 ([#209](https://github.com/TimSchoenle/netcup-offer-bot/issues/209)) ([6004960](https://github.com/TimSchoenle/netcup-offer-bot/commit/60049609aa18babfae5b1d12523a0a4c18459f4f))
+* **deps:** update to vworkflows-rust-coverage-codecov-v1.0.6 ([#206](https://github.com/TimSchoenle/netcup-offer-bot/issues/206)) ([2828a52](https://github.com/TimSchoenle/netcup-offer-bot/commit/2828a5282012f894870eb70baa5323d275bdccc6))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#215](https://github.com/TimSchoenle/netcup-offer-bot/issues/215)) ([c6d3fc2](https://github.com/TimSchoenle/netcup-offer-bot/commit/c6d3fc25565dc1a13c700b656563716c1ef9fbe4))
+* **deps:** lock file maintenance ([#216](https://github.com/TimSchoenle/netcup-offer-bot/issues/216)) ([f9c55c7](https://github.com/TimSchoenle/netcup-offer-bot/commit/f9c55c7f3b7e9d5fbde0c8ef6ae0f1df33d6077b))
+* **deps:** lock file maintenance ([#217](https://github.com/TimSchoenle/netcup-offer-bot/issues/217)) ([9fe374f](https://github.com/TimSchoenle/netcup-offer-bot/commit/9fe374fb7980cbd15fed989a1af5eecb12eff9b3))
+* **deps:** lock file maintenance ([#218](https://github.com/TimSchoenle/netcup-offer-bot/issues/218)) ([187f7bc](https://github.com/TimSchoenle/netcup-offer-bot/commit/187f7bc998ebec27fae65a5c7a73065ef340321d))
+
 ## [1.5.5](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.4...v1.5.5) (2026-03-09)
 
 
