@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.7](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.6...v1.5.7) (2026-03-19)
+
+
+### Build System
+
+* migrate build actions to propper actions ([#225](https://github.com/TimSchoenle/netcup-offer-bot/issues/225)) ([04e5a76](https://github.com/TimSchoenle/netcup-offer-bot/commit/04e5a76efd501c66bc761be4c5a375719408e1b5))
+
+
+### Miscellaneous
+
+* **deps:** update rust crate config to v0.15.22 ([#221](https://github.com/TimSchoenle/netcup-offer-bot/issues/221)) ([aaafc1b](https://github.com/TimSchoenle/netcup-offer-bot/commit/aaafc1b8834a8e3202071e72a3e8aa19989a74dc))
+* **deps:** update to vactions-helm-update-chart-version-v1.5.5 ([#223](https://github.com/TimSchoenle/netcup-offer-bot/issues/223)) ([c9452d2](https://github.com/TimSchoenle/netcup-offer-bot/commit/c9452d209f5e4533b9bb8225de646527ef7f50ba))
+* **deps:** update to vactions-helm-update-chart-version-v1.5.6 ([#224](https://github.com/TimSchoenle/netcup-offer-bot/issues/224)) ([29f274f](https://github.com/TimSchoenle/netcup-offer-bot/commit/29f274fafa4d279ccc04d54af47a567a70440ea2))
+
 ## [1.5.6](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.5...v1.5.6) (2026-03-16)
 
 
