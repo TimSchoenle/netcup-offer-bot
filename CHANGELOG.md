@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.8](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.7...v1.5.8) (2026-03-26)
+
+
+### Build System
+
+* correctly pin review action ([b9dd27e](https://github.com/TimSchoenle/netcup-offer-bot/commit/b9dd27efcab9c2aebd3eecf250e54adb873ed2f6))
+
+
+### Miscellaneous
+
+* **deps:** update all non-major action updates ([#227](https://github.com/TimSchoenle/netcup-offer-bot/issues/227)) ([2cbcaf4](https://github.com/TimSchoenle/netcup-offer-bot/commit/2cbcaf4a869f7a055a039e4d4999b5946de466ae))
+* **deps:** update github/codeql-action action to v4.34.1 ([#228](https://github.com/TimSchoenle/netcup-offer-bot/issues/228)) ([b90fffc](https://github.com/TimSchoenle/netcup-offer-bot/commit/b90fffc00524fefef0dfa31d0ac04e46db3e3518))
+* **deps:** update sigstore/cosign-installer action to v4.1.1 ([#232](https://github.com/TimSchoenle/netcup-offer-bot/issues/232)) ([a8720bb](https://github.com/TimSchoenle/netcup-offer-bot/commit/a8720bbbce5ba16444b8238f6897cf50661351a1))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#229](https://github.com/TimSchoenle/netcup-offer-bot/issues/229)) ([fe7a00d](https://github.com/TimSchoenle/netcup-offer-bot/commit/fe7a00dde786c8567b973ff72ea81a857343d02e))
+* **deps:** lock file maintenance ([#230](https://github.com/TimSchoenle/netcup-offer-bot/issues/230)) ([281f3b6](https://github.com/TimSchoenle/netcup-offer-bot/commit/281f3b675ecea546f95c85abf2e7861813bd7613))
+* **deps:** lock file maintenance ([#231](https://github.com/TimSchoenle/netcup-offer-bot/issues/231)) ([bba31d6](https://github.com/TimSchoenle/netcup-offer-bot/commit/bba31d6f980d46fe089eb4987387adb93e5d0de8))
+
 ## [1.5.7](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.6...v1.5.7) (2026-03-19)
 
 
