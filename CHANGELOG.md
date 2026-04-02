@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.5.9](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.8...v1.5.9) (2026-04-02)
+
+
+### Miscellaneous
+
+* **deps:** update all non-major action updates ([#244](https://github.com/TimSchoenle/netcup-offer-bot/issues/244)) ([49066d8](https://github.com/TimSchoenle/netcup-offer-bot/commit/49066d85e76cb53c9f21928ef5d1f0f7d6b5001b))
+* **deps:** update docker/dockerfile docker tag to v1.23 ([#245](https://github.com/TimSchoenle/netcup-offer-bot/issues/245)) ([e0dd6a9](https://github.com/TimSchoenle/netcup-offer-bot/commit/e0dd6a9ed7f6ccf517fd42e3c6074362ecdd6088))
+* **deps:** update docker/login-action digest to 4907a6d ([#246](https://github.com/TimSchoenle/netcup-offer-bot/issues/246)) ([9fae518](https://github.com/TimSchoenle/netcup-offer-bot/commit/9fae518764ab9e52be60cb02798975066b3b682a))
+* **deps:** update github/codeql-action action to v4.35.0 ([#235](https://github.com/TimSchoenle/netcup-offer-bot/issues/235)) ([27e108e](https://github.com/TimSchoenle/netcup-offer-bot/commit/27e108e82dd34024d3899bc0d5579d75ec366dfc))
+* **deps:** update github/codeql-action action to v4.35.1 ([#236](https://github.com/TimSchoenle/netcup-offer-bot/issues/236)) ([c7bee5d](https://github.com/TimSchoenle/netcup-offer-bot/commit/c7bee5de973539a1558f436812ed0c56371e3660))
+* **deps:** update to vactions-rust-coverage-codecov-v1.1.2 ([#233](https://github.com/TimSchoenle/netcup-offer-bot/issues/233)) ([6453f8b](https://github.com/TimSchoenle/netcup-offer-bot/commit/6453f8b28517483d9f43437c3a32d591f97c49fe))
+* **deps:** update to vactions-rust-coverage-codecov-v1.1.3 ([#237](https://github.com/TimSchoenle/netcup-offer-bot/issues/237)) ([1a3aa68](https://github.com/TimSchoenle/netcup-offer-bot/commit/1a3aa68b23f71fb100a3f5df228ef9837b196bcb))
+* **deps:** update to vactions-rust-coverage-codecov-v1.1.4 ([#243](https://github.com/TimSchoenle/netcup-offer-bot/issues/243)) ([3dbc1b2](https://github.com/TimSchoenle/netcup-offer-bot/commit/3dbc1b269939e7694554b8f78d7b3712f16ecbaa))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#238](https://github.com/TimSchoenle/netcup-offer-bot/issues/238)) ([eb436dd](https://github.com/TimSchoenle/netcup-offer-bot/commit/eb436dd44e57813e08e7ff3d7e9c2f963f51aac3))
+* **deps:** lock file maintenance ([#239](https://github.com/TimSchoenle/netcup-offer-bot/issues/239)) ([ff6e865](https://github.com/TimSchoenle/netcup-offer-bot/commit/ff6e865708633637fdeab126e1898aa0b54b8aed))
+* **deps:** lock file maintenance ([#240](https://github.com/TimSchoenle/netcup-offer-bot/issues/240)) ([b64f2c7](https://github.com/TimSchoenle/netcup-offer-bot/commit/b64f2c7926652f51d55f6072ace29550327aa8ab))
+* **deps:** lock file maintenance ([#241](https://github.com/TimSchoenle/netcup-offer-bot/issues/241)) ([a8581ee](https://github.com/TimSchoenle/netcup-offer-bot/commit/a8581eec0ac75664cd5ca17d5099548626ce4000))
+* **deps:** lock file maintenance ([#242](https://github.com/TimSchoenle/netcup-offer-bot/issues/242)) ([df05370](https://github.com/TimSchoenle/netcup-offer-bot/commit/df05370c261aa5f67582b837bf2302939f430bf7))
+
 ## [1.5.8](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.7...v1.5.8) (2026-03-26)
 
 
