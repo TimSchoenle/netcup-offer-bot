@@ -92,9 +92,9 @@ impl DiscordWebhook {
 
         loop {
             attempts += 1;
-            // codeql[rust/cleartext-transmission]
             let response = self
                 .client
+                // codeql[rust/cleartext-transmission]
                 .post(self.url.expose_secret())
                 .json(payload)
                 .send()
