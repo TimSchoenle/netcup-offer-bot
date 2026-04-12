@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.5.11](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.10...v1.5.11) (2026-04-12)
+
+
+### Bug Fixes
+
+* sentry flags if feed is empty ([#265](https://github.com/TimSchoenle/netcup-offer-bot/issues/265)) ([e090eff](https://github.com/TimSchoenle/netcup-offer-bot/commit/e090eff562fae63be642f63a432b098a06b00b08))
+
+
+### Build System
+
+* improve ci & security flags ([#264](https://github.com/TimSchoenle/netcup-offer-bot/issues/264)) ([a71088e](https://github.com/TimSchoenle/netcup-offer-bot/commit/a71088e9fee8a40d408499570e3956fa2bfdacf4))
+
+
+### Miscellaneous
+
+* **deps:** update actions/create-github-app-token action to v3.1.0 ([#262](https://github.com/TimSchoenle/netcup-offer-bot/issues/262)) ([924c0e5](https://github.com/TimSchoenle/netcup-offer-bot/commit/924c0e5287a99126d66a36756d065d3938014605))
+* **deps:** update actions/create-github-app-token action to v3.1.1 ([#263](https://github.com/TimSchoenle/netcup-offer-bot/issues/263)) ([af9974f](https://github.com/TimSchoenle/netcup-offer-bot/commit/af9974ff8f00514f95d96e92c458f813adab63c7))
+* **deps:** update docker/build-push-action digest to bcafcac ([#260](https://github.com/TimSchoenle/netcup-offer-bot/issues/260)) ([bc484e7](https://github.com/TimSchoenle/netcup-offer-bot/commit/bc484e7112a27c568515ccfdf0532095de0bbbb3))
+
 ## [1.5.10](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.9...v1.5.10) (2026-04-10)
 
 

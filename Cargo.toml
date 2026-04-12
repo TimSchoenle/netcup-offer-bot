@@ -1,6 +1,6 @@
 [package]
 name = "netcup-offer-bot"
-version = "1.5.10"
+version = "1.5.11"
 edition = "2024"
 
 [lib]
