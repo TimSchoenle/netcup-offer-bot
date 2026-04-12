@@ -96,11 +96,7 @@ impl FeedChecker {
             }
             Err(e) => {
                 if e.is_expected_feed_parse_error() {
-                    warn!(
-                        "Skipping malformed feed payload for {}: {}",
-                        feed.name(),
-                        e
-                    );
+                    warn!("Skipping malformed feed payload for {}: {}", feed.name(), e);
                 } else {
                     error!("Error fetching feed for {}: {}", feed.name(), e);
                     metrics::get_feed_fetch_errors()
