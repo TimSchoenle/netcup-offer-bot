@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.14](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.13...v1.5.14) (2026-04-27)
+
+
+### Miscellaneous
+
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.9 ([#297](https://github.com/TimSchoenle/netcup-offer-bot/issues/297)) ([a3eff53](https://github.com/TimSchoenle/netcup-offer-bot/commit/a3eff537532380d2fdd4875276ad3d4471a2f7d7))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#294](https://github.com/TimSchoenle/netcup-offer-bot/issues/294)) ([1a0f7c5](https://github.com/TimSchoenle/netcup-offer-bot/commit/1a0f7c513476e7fd55434bfc233542b579f2b246))
+* **deps:** lock file maintenance ([#296](https://github.com/TimSchoenle/netcup-offer-bot/issues/296)) ([be9ae1e](https://github.com/TimSchoenle/netcup-offer-bot/commit/be9ae1e4a412934385efbf97b109acc3e3dc9c16))
+
 ## [1.5.13](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.12...v1.5.13) (2026-04-26)
 
 
