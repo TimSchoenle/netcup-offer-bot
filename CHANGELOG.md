@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.5.16](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.15...v1.5.16) (2026-06-10)
+
+
+### Miscellaneous
+
+* **deps:** update actions/dependency-review-action action to v5 ([#318](https://github.com/TimSchoenle/netcup-offer-bot/issues/318)) ([7e4b128](https://github.com/TimSchoenle/netcup-offer-bot/commit/7e4b1285c08ed87764d6969f4bf69e4b68d3d8a9))
+* **deps:** update all non-major action updates to v3.7.0 ([#333](https://github.com/TimSchoenle/netcup-offer-bot/issues/333)) ([998b92c](https://github.com/TimSchoenle/netcup-offer-bot/commit/998b92cbe4d59a278cbf01c3f071e11c9b44628c))
+* **deps:** update all non-major action updates to v4.36.1 ([#332](https://github.com/TimSchoenle/netcup-offer-bot/issues/332)) ([2070b41](https://github.com/TimSchoenle/netcup-offer-bot/commit/2070b417a0f385130451c825e4612714385bd0e1))
+* **deps:** update all non-major action updates to v4.36.2 ([#342](https://github.com/TimSchoenle/netcup-offer-bot/issues/342)) ([03b3c94](https://github.com/TimSchoenle/netcup-offer-bot/commit/03b3c94204b2653b9e84bed7ce73806fc719491d))
+* **deps:** update rust crate chrono to v0.4.45 ([#341](https://github.com/TimSchoenle/netcup-offer-bot/issues/341)) ([ac7ca6c](https://github.com/TimSchoenle/netcup-offer-bot/commit/ac7ca6c44a1bd9a152387de8b83aaa3f97f0a0d0))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-auto-approve-renovate.yaml to vworkflows-maintenance-auto-approve-renovate-v1.4.10 ([#340](https://github.com/TimSchoenle/netcup-offer-bot/issues/340)) ([7c6a0e3](https://github.com/TimSchoenle/netcup-offer-bot/commit/7c6a0e3b7a6a24a4eb86ab1fbe0cf67edbc06d29))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-timed-auto-pr-approve.yaml to vworkflows-maintenance-timed-auto-pr-approve-v1.2.21 ([#346](https://github.com/TimSchoenle/netcup-offer-bot/issues/346)) ([a8c14b3](https://github.com/TimSchoenle/netcup-offer-bot/commit/a8c14b3296f7e22c5df65a02273ce403a98b28f3))
+* **deps:** update timschoenle/actions/actions/helm/update-chart-version to vactions-helm-update-chart-version-v1.5.13 ([#334](https://github.com/TimSchoenle/netcup-offer-bot/issues/334)) ([034c0de](https://github.com/TimSchoenle/netcup-offer-bot/commit/034c0de5be2cc74d7bd57365154f47aaac01ce4a))
+* **deps:** update timschoenle/actions/actions/helm/update-chart-version to vactions-helm-update-chart-version-v1.5.14 ([#345](https://github.com/TimSchoenle/netcup-offer-bot/issues/345)) ([8312030](https://github.com/TimSchoenle/netcup-offer-bot/commit/8312030c43e79e643731cf6d6395c1b02c544ab7))
+* **deps:** update timschoenle/actions/actions/rust/auto-format to vactions-rust-auto-format-v1.1.4 ([#335](https://github.com/TimSchoenle/netcup-offer-bot/issues/335)) ([a2fc4d2](https://github.com/TimSchoenle/netcup-offer-bot/commit/a2fc4d29e9963d09505b7f6f9af03d452ef94361))
+* **deps:** update timschoenle/actions/actions/rust/cargo-check to vactions-rust-cargo-check-v1.1.3 ([#336](https://github.com/TimSchoenle/netcup-offer-bot/issues/336)) ([b59c88d](https://github.com/TimSchoenle/netcup-offer-bot/commit/b59c88daa89079397c37eae14b2d6a5f054ad463))
+* **deps:** update timschoenle/actions/actions/rust/clippy to vactions-rust-clippy-v1.1.5 ([#337](https://github.com/TimSchoenle/netcup-offer-bot/issues/337)) ([b51fa23](https://github.com/TimSchoenle/netcup-offer-bot/commit/b51fa23b5513b7ab0c158390fbbe8a441f51e894))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.19 ([#338](https://github.com/TimSchoenle/netcup-offer-bot/issues/338)) ([505cc7f](https://github.com/TimSchoenle/netcup-offer-bot/commit/505cc7fd139ea56b8aa8358269646938d3327946))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.20 ([#347](https://github.com/TimSchoenle/netcup-offer-bot/issues/347)) ([1904720](https://github.com/TimSchoenle/netcup-offer-bot/commit/19047203649a675b926c9d0d4c66fcc98a94c805))
+* **deps:** update timschoenle/actions/actions/rust/test to vactions-rust-test-v1.1.1 ([#339](https://github.com/TimSchoenle/netcup-offer-bot/issues/339)) ([779ad33](https://github.com/TimSchoenle/netcup-offer-bot/commit/779ad33cf398d37ac0d6519a20ff1c4f4d76bf56))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#343](https://github.com/TimSchoenle/netcup-offer-bot/issues/343)) ([18a95d9](https://github.com/TimSchoenle/netcup-offer-bot/commit/18a95d9893fd5e90c02c61aef01fecd8479963ea))
+* **deps:** lock file maintenance ([#344](https://github.com/TimSchoenle/netcup-offer-bot/issues/344)) ([4de366f](https://github.com/TimSchoenle/netcup-offer-bot/commit/4de366f6c2d1b4698935a24f40cc523d041f4288))
+
 ## [1.5.15](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.14...v1.5.15) (2026-06-03)
 
 
