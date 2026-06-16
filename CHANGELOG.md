@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.17](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.16...v1.5.17) (2026-06-16)
+
+
+### Miscellaneous
+
+* **deps:** update alpine docker tag to v3.24 ([#350](https://github.com/TimSchoenle/netcup-offer-bot/issues/350)) ([7d8c75f](https://github.com/TimSchoenle/netcup-offer-bot/commit/7d8c75f62494642630a95cd2a032e4d44282c124))
+* **deps:** update alpine:3.24 docker digest to 28bd5fe ([#352](https://github.com/TimSchoenle/netcup-offer-bot/issues/352)) ([f1de150](https://github.com/TimSchoenle/netcup-offer-bot/commit/f1de1508b22e38472a8523c22d2d979324f6b906))
+* **deps:** update alpine:3.24 docker digest to f5064d3 ([#351](https://github.com/TimSchoenle/netcup-offer-bot/issues/351)) ([7a63bfd](https://github.com/TimSchoenle/netcup-offer-bot/commit/7a63bfd54de14c363f6d27cd4b18f3c6cfac61e8))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-auto-approve-renovate.yaml to vworkflows-maintenance-auto-approve-renovate-v1.4.11 ([#348](https://github.com/TimSchoenle/netcup-offer-bot/issues/348)) ([61c4b22](https://github.com/TimSchoenle/netcup-offer-bot/commit/61c4b2283a85345ef3b2712f9309a01b78baa7d3))
+
 ## [1.5.16](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.15...v1.5.16) (2026-06-10)
 
 
