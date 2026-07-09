@@ -48,7 +48,7 @@ jobs:
           egress-policy: audit
 
       - name: Run Coverage
-        uses: TimSchoenle/actions/actions/rust/coverage-codecov@ddd7e45375f3caeb3f8d8a38c72dc5ba8c081625 # tag=actions-rust-coverage-codecov-v1.1.25
+        uses: TimSchoenle/actions/actions/rust/coverage-codecov@b0f377e20e0ba1b3557a421ce3e5384b21a3ee16 # tag=actions-rust-coverage-codecov-v1.1.26
         with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
