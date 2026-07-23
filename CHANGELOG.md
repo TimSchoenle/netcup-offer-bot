@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.5.22](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.21...v1.5.22) (2026-07-23)
+
+
+### Miscellaneous
+
+* **deps:** update actions/checkout digest to 3d3c42e ([#416](https://github.com/TimSchoenle/netcup-offer-bot/issues/416)) ([efe7721](https://github.com/TimSchoenle/netcup-offer-bot/commit/efe7721198a7a1406f79b0a73f947e2960465141))
+* **deps:** update docker/login-action digest to 06fb636 ([#427](https://github.com/TimSchoenle/netcup-offer-bot/issues/427)) ([4002213](https://github.com/TimSchoenle/netcup-offer-bot/commit/4002213480a9a9268990365056f06eafa97b2be8))
+* **deps:** update rust crate anyhow to v1.0.104 ([#420](https://github.com/TimSchoenle/netcup-offer-bot/issues/420)) ([a04250a](https://github.com/TimSchoenle/netcup-offer-bot/commit/a04250a3c9696f8f5b4a1b82a8a836580f2d514b))
+* **deps:** update rust crate serde to v1.0.229 ([#424](https://github.com/TimSchoenle/netcup-offer-bot/issues/424)) ([a845af4](https://github.com/TimSchoenle/netcup-offer-bot/commit/a845af4601acdde96a189e3843d41d0ae87e10f3))
+* **deps:** update rust crate serde_json to v1.0.151 ([#425](https://github.com/TimSchoenle/netcup-offer-bot/issues/425)) ([59b79ac](https://github.com/TimSchoenle/netcup-offer-bot/commit/59b79ac477e932c204392bffa9e99b22a184ceff))
+* **deps:** update rust crate thiserror to v2.0.19 ([#423](https://github.com/TimSchoenle/netcup-offer-bot/issues/423)) ([e87d47f](https://github.com/TimSchoenle/netcup-offer-bot/commit/e87d47fdaf2079c2573881a16ab6c8510d38d2f6))
+* **deps:** update rust crate tokio to v1.53.0 ([#417](https://github.com/TimSchoenle/netcup-offer-bot/issues/417)) ([a3a5be8](https://github.com/TimSchoenle/netcup-offer-bot/commit/a3a5be8d3afdcd6316bea49a2e2ee8a0433f157b))
+* **deps:** update rust crate tokio to v1.53.1 ([#429](https://github.com/TimSchoenle/netcup-offer-bot/issues/429)) ([b255caf](https://github.com/TimSchoenle/netcup-offer-bot/commit/b255caf067410ce26733cf4fb0e56fda382adb05))
+* **deps:** update timschoenle/actions/actions/helm/update-chart-version to vactions-helm-update-chart-version-v1.5.22 ([#421](https://github.com/TimSchoenle/netcup-offer-bot/issues/421)) ([e41cbc0](https://github.com/TimSchoenle/netcup-offer-bot/commit/e41cbc0739f3e1636b37feed185752f4d9ec4a26))
+* **deps:** update timschoenle/actions/actions/rust/auto-format to vactions-rust-auto-format-v1.1.7 ([#419](https://github.com/TimSchoenle/netcup-offer-bot/issues/419)) ([d3fbbcc](https://github.com/TimSchoenle/netcup-offer-bot/commit/d3fbbcc51419af9a0223f3591424f396b8824d68))
+* **deps:** update timschoenle/actions/actions/rust/cargo-check to vactions-rust-cargo-check-v1.1.5 ([#426](https://github.com/TimSchoenle/netcup-offer-bot/issues/426)) ([8e83bc3](https://github.com/TimSchoenle/netcup-offer-bot/commit/8e83bc32f8ab86b1e1677a92006b2fd5ed775cc7))
+* **deps:** update timschoenle/actions/actions/rust/clippy to vactions-rust-clippy-v1.1.8 ([#428](https://github.com/TimSchoenle/netcup-offer-bot/issues/428)) ([05d9b18](https://github.com/TimSchoenle/netcup-offer-bot/commit/05d9b18b37c956ee6c007c7da812ceb8ca07bbb9))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.30 ([#422](https://github.com/TimSchoenle/netcup-offer-bot/issues/422)) ([458d3a7](https://github.com/TimSchoenle/netcup-offer-bot/commit/458d3a70c61be256f1e9b9f0bc8611329de02af0))
+
 ## [1.5.21](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.20...v1.5.21) (2026-07-19)
 
 
