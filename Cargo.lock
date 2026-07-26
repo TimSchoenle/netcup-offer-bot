@@ -1240,7 +1240,7 @@ dependencies = [
 
 [[package]]
 name = "netcup-offer-bot"
-version = "1.5.21"
+version = "1.5.22"
 dependencies = [
  "anyhow",
  "backtrace",
