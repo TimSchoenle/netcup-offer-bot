@@ -31,6 +31,9 @@ RSS feed listener to discord webhook for https://www.netcup.com/de/deals
 
 - [Docker Image](https://hub.docker.com/repository/docker/timmi6790/netcup-offer-bot)
 
+The image is published as a multi-platform manifest for `linux/amd64` and `linux/arm64`. Docker pulls
+the matching architecture automatically, so the commands below are identical on both.
+
 #### Quick start
 
 ```shell
