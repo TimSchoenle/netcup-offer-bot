@@ -40,4 +40,10 @@ wiremock = "=0.6.5"
 [profile.release]
 lto = true
 codegen-units = 1
-debug = true
+# Sentry only needs function names, file names and line numbers to symbolicate
+# stack frames, all of which "limited" keeps. Full debug info additionally emits
+# a DW_TAG_variable for every static; under fat LTO the statics themselves are
+# constant-folded away, leaving .debug_info/.debug_aranges relocations against
+# symbols no object file defines and an "undefined reference to
+# `encoding_rs::UTF_8'" failure when ld links the musl binary.
+debug = "limited"
