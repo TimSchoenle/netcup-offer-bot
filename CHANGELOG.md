@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.24](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.23...v1.5.24) (2026-08-04)
+
+
+### Bug Fixes
+
+* repair release manifest step and update rss + sentry ([#450](https://github.com/TimSchoenle/netcup-offer-bot/issues/450)) ([ab768d9](https://github.com/TimSchoenle/netcup-offer-bot/commit/ab768d95c1fcd47e53a6fdf0800584b1b24b1dd6))
+
+
+### Miscellaneous
+
+* **deps:** update timschoenle/actions/actions/rust/auto-format to vactions-rust-auto-format-v1.1.9 ([#451](https://github.com/TimSchoenle/netcup-offer-bot/issues/451)) ([78a274e](https://github.com/TimSchoenle/netcup-offer-bot/commit/78a274ec4d07a88fd07d9ae3ba9bd4b4a03c1385))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#384](https://github.com/TimSchoenle/netcup-offer-bot/issues/384)) ([e91ef02](https://github.com/TimSchoenle/netcup-offer-bot/commit/e91ef02d9dbff456e301c36dfb1b09deb919a84b))
+
 ## [1.5.23](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.22...v1.5.23) (2026-08-03)
 
 
