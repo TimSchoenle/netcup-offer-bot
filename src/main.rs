@@ -65,15 +65,14 @@ fn setup_sentry(dns: Option<String>) -> Option<ClientInitGuard> {
     };
 
     // Sentry innit
-    Some(sentry::init((
-        dns,
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            traces_sample_rate: 0.2,
-            attach_stacktrace: true,
-            ..Default::default()
-        },
-    )))
+    let mut options = sentry::ClientOptions::new()
+        .traces_sample_rate(0.2)
+        .attach_stacktrace(true);
+    if let Some(release) = sentry::release_name!() {
+        options = options.release(release);
+    }
+
+    Some(sentry::init((dns, options)))
 }
 
 fn setup_metrics(socket: &SocketAddr) -> Result<()> {
