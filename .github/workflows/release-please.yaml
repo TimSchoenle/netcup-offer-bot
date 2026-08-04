@@ -182,11 +182,17 @@ jobs:
       - name: Create multi-platform manifest list and push
         working-directory: /tmp/digests
         run: |
+          set -euo pipefail
+
+          # The bake file nests tags under a target, the metadata JSON exposes
+          # them at the top level. This step reads the latter.
+          tag_args=$(jq -cer '.tags | map("-t " + .) | join(" ")' <<< "${DOCKER_METADATA_OUTPUT_JSON}")
+
           # Word splitting is intentional: both substitutions expand to a list of
           # separate arguments (-t <tag> ... and one reference per digest file).
-          # shellcheck disable=SC2046
+          # shellcheck disable=SC2046,SC2086
           docker buildx imagetools create \
-            $(jq -cr '.target."docker-metadata-action".tags | map("-t " + .) | join(" ")' <<< "${DOCKER_METADATA_OUTPUT_JSON}") \
+            ${tag_args} \
             $(printf "${DOCKER_REPO}@sha256:%s " *)
 
       - name: Resolve pushed image digest

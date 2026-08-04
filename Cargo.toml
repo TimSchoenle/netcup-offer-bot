@@ -14,7 +14,7 @@ name = "netcup-offer-bot"
 anyhow = { version = "1.0.100", features = ["backtrace"] }
 thiserror = "2.0.18"
 backtrace = "0.3.76"
-sentry = { version = "0.48.0", default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
+sentry = { version = "0.49.1", default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
 chrono = { version = "0.4.43", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 rss = { version = "2.0.12", features = ["validation"] }
 reqwest = { version = "0.13.1", default-features = false, features = ["json", "rustls", "stream", "gzip"] }
@@ -40,4 +40,10 @@ wiremock = "=0.6.5"
 [profile.release]
 lto = true
 codegen-units = 1
-debug = true
+# Sentry only needs function names, file names and line numbers to symbolicate
+# stack frames, all of which "limited" keeps. Full debug info additionally emits
+# a DW_TAG_variable for every static; under fat LTO the statics themselves are
+# constant-folded away, leaving .debug_info/.debug_aranges relocations against
+# symbols no object file defines and an "undefined reference to
+# `encoding_rs::UTF_8'" failure when ld links the musl binary.
+debug = "limited"
