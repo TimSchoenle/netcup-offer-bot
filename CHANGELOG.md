@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.25](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.24...v1.5.25) (2026-08-08)
+
+
+### Miscellaneous
+
+* **deps:** update github/codeql-action action to v4.37.5 ([#456](https://github.com/TimSchoenle/netcup-offer-bot/issues/456)) ([f4eadb5](https://github.com/TimSchoenle/netcup-offer-bot/commit/f4eadb5dca6f3dcaf87a6fdf377efa2210dc7563))
+* **deps:** update step-security/harden-runner action to v2.20.1 ([#461](https://github.com/TimSchoenle/netcup-offer-bot/issues/461)) ([a9beb2c](https://github.com/TimSchoenle/netcup-offer-bot/commit/a9beb2c6ef98f75295ffb8a3f3879085f4596eac))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-auto-approve-renovate.yaml to vworkflows-maintenance-auto-approve-renovate-v1.4.18 ([#460](https://github.com/TimSchoenle/netcup-offer-bot/issues/460)) ([ada4627](https://github.com/TimSchoenle/netcup-offer-bot/commit/ada462794ec59c458b1e5ecaaf4e7750cc8734f8))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-timed-auto-pr-approve.yaml to vworkflows-maintenance-timed-auto-pr-approve-v1.2.29 ([#457](https://github.com/TimSchoenle/netcup-offer-bot/issues/457)) ([7c18790](https://github.com/TimSchoenle/netcup-offer-bot/commit/7c1879086ec687db59553d077961fad702d8338a))
+* **deps:** update timschoenle/actions/actions/helm/update-chart-version to vactions-helm-update-chart-version-v1.6.1 ([#458](https://github.com/TimSchoenle/netcup-offer-bot/issues/458)) ([114232c](https://github.com/TimSchoenle/netcup-offer-bot/commit/114232c87e26fd19459141dce2630bcfadb9bb2f))
+* **deps:** update timschoenle/actions/actions/rust/auto-format to vactions-rust-auto-format-v1.1.10 ([#459](https://github.com/TimSchoenle/netcup-offer-bot/issues/459)) ([78e02f6](https://github.com/TimSchoenle/netcup-offer-bot/commit/78e02f688d9c2a14c68bedbee0a105a773ae7904))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.35 ([#455](https://github.com/TimSchoenle/netcup-offer-bot/issues/455)) ([5cefbb2](https://github.com/TimSchoenle/netcup-offer-bot/commit/5cefbb2c165a86bcf2edf48ecfbd834782a0a287))
+* **deps:** update zizmorcore/zizmor-action action to v0.6.2 ([#453](https://github.com/TimSchoenle/netcup-offer-bot/issues/453)) ([70b71be](https://github.com/TimSchoenle/netcup-offer-bot/commit/70b71be8cf65dd87416c18aaf633da8614ddea3e))
+
 ## [1.5.24](https://github.com/TimSchoenle/netcup-offer-bot/compare/v1.5.23...v1.5.24) (2026-08-04)
 
 
