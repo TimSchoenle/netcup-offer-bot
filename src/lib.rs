@@ -42,7 +42,7 @@ impl FeedChecker {
             .with(TracingMiddleware::<SpanBackendWithUrl>::new())
             .build();
         let states = FeedStates::load().unwrap();
-        let hook = DiscordWebhook::new(config.discord_webhook_url.clone());
+        let hook = DiscordWebhook::new(config.discord.webhook_url.clone());
 
         FeedChecker::new(client, states, hook)
     }

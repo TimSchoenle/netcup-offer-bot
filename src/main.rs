@@ -4,10 +4,9 @@ extern crate tracing;
 use netcup_offer_bot::FeedChecker;
 use netcup_offer_bot::Result;
 use netcup_offer_bot::config::Config;
+use secrecy::{ExposeSecret, SecretString};
 use sentry::ClientInitGuard;
-use std::env;
 use std::net::SocketAddr;
-use std::str::FromStr;
 use tokio::time;
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::IntervalStream;
@@ -15,26 +14,23 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{Layer, filter};
 
-const ENV_SENTRY_DSN: &str = "SENTRY_DSN";
-const ENV_LOG_LEVEL: &str = "LOG_LEVEL";
-
-const DEFAULT_LOG_LEVEL: &str = "info";
-
 #[tokio::main]
 async fn main() -> Result<()> {
-    setup_tracing()?;
+    // Loaded before anything is installed: every knob below, the log level included, is part of
+    // the same layered configuration, so a failure here is reported by `main`'s `Termination`
+    // rather than by a subscriber that does not exist yet.
+    let config = Config::load()?;
 
-    let dns = env::var(ENV_SENTRY_DSN).ok();
+    setup_tracing(config.telemetry.log_level);
+
     // Prevents the process from exiting until all events are sent
-    let _sentry = setup_sentry(dns);
+    let _sentry = setup_sentry(config.telemetry.sentry_dsn.as_ref());
 
-    let config = Config::get_configurations()?;
-
-    setup_metrics(&config.metric_socket)?;
+    setup_metrics(&config.metrics.socket())?;
 
     info!("Starting feed bot");
     let mut checker = FeedChecker::from_config(&config);
-    let mut stream = IntervalStream::new(time::interval(config.check_interval));
+    let mut stream = IntervalStream::new(time::interval(config.feed.check_interval()));
     while let Some(_ts) = stream.next().await {
         checker.check_feeds().await;
     }
@@ -42,24 +38,19 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn setup_tracing() -> Result<()> {
-    let level = env::var(ENV_LOG_LEVEL).unwrap_or_else(|_| DEFAULT_LOG_LEVEL.to_string());
-    let level = tracing::Level::from_str(&level)?;
-
+fn setup_tracing(level: tracing::Level) {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer().with_filter(filter::LevelFilter::from_level(level)))
         .with(sentry::integrations::tracing::layer().with_filter(filter::LevelFilter::DEBUG))
         .init();
-
-    Ok(())
 }
 
-fn setup_sentry(dns: Option<String>) -> Option<ClientInitGuard> {
-    // Only enable sentry if the dns is set
-    let dns = match dns {
-        Some(dns) => dns,
+fn setup_sentry(dsn: Option<&SecretString>) -> Option<ClientInitGuard> {
+    // Only enable sentry if the dsn is set
+    let dsn = match dsn {
+        Some(dsn) => dsn,
         None => {
-            info!("{ENV_SENTRY_DSN} not set, skipping Sentry setup");
+            info!("telemetry.sentry_dsn not set, skipping Sentry setup");
             return None;
         }
     };
@@ -72,7 +63,7 @@ fn setup_sentry(dns: Option<String>) -> Option<ClientInitGuard> {
         options = options.release(release);
     }
 
-    Some(sentry::init((dns, options)))
+    Some(sentry::init((dsn.expose_secret(), options)))
 }
 
 fn setup_metrics(socket: &SocketAddr) -> Result<()> {

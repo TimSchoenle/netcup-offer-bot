@@ -1,194 +1,143 @@
-use crate::error::Error;
-use secrecy::SecretString;
-use std::net::SocketAddr;
+//! The typed configuration surface, and the loader every run boots through.
+//!
+//! The layering is [`terrace_config`]'s. Lowest precedence first: the `serde` defaults compiled
+//! into the structs below, TOML at `$NETCUP_OFFER_BOT_CONFIG` (default `./config.toml`, absent
+//! is not an error), `NETCUP_OFFER_BOT_`-prefixed `__`-nested environment variables, every
+//! key-named file in `$NETCUP_OFFER_BOT_SECRETS_DIR`, and `NETCUP_OFFER_BOT_<KEY>_FILE`
+//! indirection.
+//!
+//! The point of the last two is that the Discord webhook — the one credential this process
+//! holds — can arrive as a mounted Kubernetes `Secret` or a Docker secret file rather than as
+//! an environment variable that shows up in `docker inspect` and in every child process's
+//! environment.
+//!
+//! Every layer spells a field the same way: `__` separates nesting levels and case is folded,
+//! so `discord.webhook_url` is `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL` as a variable and
+//! `discord__webhook_url` as a file name.
+
+mod loader;
+
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::str::FromStr;
 use std::time::Duration;
 
-const DEFAULT_METRIC_IP: &str = "127.0.0.1";
+use secrecy::SecretString;
+use serde::{Deserialize, Deserializer};
+use tracing::Level;
+
+pub use loader::ConfigError;
+
+const DEFAULT_METRIC_IP: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 const DEFAULT_METRIC_PORT: u16 = 9184;
+const DEFAULT_LOG_LEVEL: Level = Level::INFO;
 
-#[derive(Debug, serde::Deserialize)]
-struct RawConfig {
-    web_hook: SecretString,
-    check_interval: u64,
-    metric_ip: Option<String>,
-    metric_port: Option<u16>,
-}
-
-#[derive(Debug)]
+/// Everything the process reads before it starts.
+#[derive(Debug, Deserialize)]
 pub struct Config {
-    pub discord_webhook_url: SecretString,
-    pub check_interval: Duration,
-    pub metric_socket: SocketAddr,
-}
-
-impl TryFrom<RawConfig> for Config {
-    type Error = crate::Error;
-
-    fn try_from(value: RawConfig) -> Result<Self, Self::Error> {
-        let check_interval = Duration::from_secs(value.check_interval);
-        let metric_ip = value
-            .metric_ip
-            .unwrap_or_else(|| DEFAULT_METRIC_IP.to_string());
-        let metric_port = value.metric_port.unwrap_or(DEFAULT_METRIC_PORT);
-        let metric_ip = match metric_ip.parse::<std::net::IpAddr>() {
-            Ok(ip) => ip,
-            Err(_) => {
-                return Err(Error::custom(format!(
-                    "Invalid metric ip address: {metric_ip}"
-                )));
-            }
-        };
-
-        let metric_socket = SocketAddr::new(metric_ip, metric_port);
-        Ok(Self {
-            discord_webhook_url: value.web_hook,
-            check_interval,
-            metric_socket,
-        })
-    }
+    pub discord: DiscordConfig,
+    pub feed: FeedConfig,
+    #[serde(default)]
+    pub metrics: MetricsConfig,
+    #[serde(default)]
+    pub telemetry: TelemetryConfig,
 }
 
 impl Config {
-    pub fn get_configurations() -> crate::Result<Self> {
-        config::Config::builder()
-            .add_source(config::Environment::default())
-            .build()
-            .map_err(|e| Error::custom(format!("Can't parse config: {e}")))?
-            .try_deserialize::<RawConfig>()
-            .map_err(|e| Error::custom(format!("Failed to deserialize configuration: {e}")))?
-            .try_into()
+    /// Load the configuration from every layer.
+    ///
+    /// # Errors
+    /// Returns [`ConfigError`] if a required value is missing, a value fails to parse, a
+    /// file-backed source cannot be read, or one key is supplied by more than one of the
+    /// environment, the secrets directory and `_FILE` indirection.
+    pub fn load() -> Result<Self, ConfigError> {
+        loader::load()
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use secrecy::ExposeSecret;
+/// Where new offers are announced.
+#[derive(Debug, Deserialize)]
+pub struct DiscordConfig {
+    /// The webhook to post to. Secret: it is a bearer credential — anyone holding it can post
+    /// to the channel — so it stays wrapped from the layer that read it to the request that
+    /// uses it.
+    pub webhook_url: SecretString,
+}
 
-    use super::*;
+/// How often the RSS feeds are polled.
+#[derive(Debug, Deserialize)]
+pub struct FeedConfig {
+    /// Seconds between two feed checks. Spelled in seconds rather than as a [`Duration`] so
+    /// the TOML and the environment layer agree on one representation.
+    check_interval_secs: u64,
+}
 
-    const ENV_WEB_HOOK: &str = "WEB_HOOK";
-    const ENV_CHECK_INTERVAL: &str = "CHECK_INTERVAL";
-    const ENV_METRIC_IP: &str = "METRIC_IP";
-    const ENV_METRIC_PORT: &str = "METRIC_PORT";
-
-    const CORRECT_WEB_HOOK: &str = "https://discord.com/api/webhooks/";
-    const CORRECT_CHECK_INTERVAL: &str = "42";
-    const CORRECT_METRIC_IP: &str = "127.0.0.1";
-    const CORRECT_METRIC_PORT: &str = "9184";
-
-    #[test]
-    fn test_from_env_missing_env() {
-        temp_env::with_vars_unset(vec![ENV_WEB_HOOK, ENV_CHECK_INTERVAL], || {
-            let result = Config::get_configurations();
-            assert!(result.is_err());
-        });
+impl FeedConfig {
+    /// The poll interval as a [`Duration`].
+    #[must_use]
+    pub fn check_interval(&self) -> Duration {
+        Duration::from_secs(self.check_interval_secs)
     }
+}
 
-    #[test]
-    fn test_from_env_minimal() {
-        temp_env::with_vars(
-            vec![
-                (ENV_WEB_HOOK, Some(CORRECT_WEB_HOOK)),
-                (ENV_CHECK_INTERVAL, Some(CORRECT_CHECK_INTERVAL)),
-            ],
-            || {
-                let result = Config::get_configurations();
-                assert!(result.is_ok());
+/// Where the Prometheus exporter listens.
+#[derive(Debug, Deserialize)]
+#[serde(default)]
+pub struct MetricsConfig {
+    pub ip: IpAddr,
+    pub port: u16,
+}
 
-                let config = result.unwrap();
-                assert_eq!(config.discord_webhook_url.expose_secret(), CORRECT_WEB_HOOK);
-                assert_eq!(
-                    config.check_interval,
-                    Duration::from_secs(CORRECT_CHECK_INTERVAL.parse().unwrap())
-                );
-            },
-        );
+impl Default for MetricsConfig {
+    fn default() -> Self {
+        Self {
+            ip: DEFAULT_METRIC_IP,
+            port: DEFAULT_METRIC_PORT,
+        }
     }
+}
 
-    #[test]
-    fn test_from_env_full() {
-        temp_env::with_vars(
-            vec![
-                (ENV_WEB_HOOK, Some(CORRECT_WEB_HOOK)),
-                (ENV_CHECK_INTERVAL, Some(CORRECT_CHECK_INTERVAL)),
-                (ENV_METRIC_IP, Some(CORRECT_METRIC_IP)),
-                (ENV_METRIC_PORT, Some(CORRECT_METRIC_PORT)),
-            ],
-            || {
-                let result = Config::get_configurations();
-                assert!(result.is_ok());
-
-                let config = result.unwrap();
-                assert_eq!(config.discord_webhook_url.expose_secret(), CORRECT_WEB_HOOK);
-                assert_eq!(
-                    config.check_interval,
-                    Duration::from_secs(CORRECT_CHECK_INTERVAL.parse().unwrap())
-                );
-                assert_eq!(
-                    config.metric_socket,
-                    SocketAddr::new(
-                        CORRECT_METRIC_IP.parse().unwrap(),
-                        CORRECT_METRIC_PORT.parse().unwrap(),
-                    )
-                );
-            },
-        );
+impl MetricsConfig {
+    /// The address the exporter binds.
+    #[must_use]
+    pub fn socket(&self) -> SocketAddr {
+        SocketAddr::new(self.ip, self.port)
     }
+}
 
-    #[test]
-    fn test_from_env_invalid_check_interval() {
-        temp_env::with_vars(
-            vec![
-                (ENV_WEB_HOOK, Some(CORRECT_WEB_HOOK)),
-                (ENV_CHECK_INTERVAL, Some("d")),
-            ],
-            || {
-                let result = Config::get_configurations();
-                assert!(result.is_err());
-            },
-        );
-    }
+/// Logging and error reporting.
+#[derive(Debug, Deserialize)]
+#[serde(default)]
+pub struct TelemetryConfig {
+    /// The maximum verbosity that reaches stdout, parsed at boot so an unusable value fails
+    /// the load rather than the first log line.
+    #[serde(deserialize_with = "deserialize_level")]
+    pub log_level: Level,
+    /// Sentry DSN. Absent disables Sentry entirely. Secret: a DSN is a write credential for
+    /// the project's event stream.
+    pub sentry_dsn: Option<SecretString>,
+}
 
-    #[test]
-    fn test_from_env_invalid_metric_ip() {
-        temp_env::with_vars(
-            vec![
-                (ENV_WEB_HOOK, Some(CORRECT_WEB_HOOK)),
-                (ENV_CHECK_INTERVAL, Some(CORRECT_CHECK_INTERVAL)),
-                (ENV_METRIC_IP, Some("abcde")),
-                (ENV_METRIC_PORT, Some(CORRECT_METRIC_PORT)),
-            ],
-            || {
-                let result = Config::get_configurations();
-                assert!(result.is_err());
-            },
-        );
+impl Default for TelemetryConfig {
+    fn default() -> Self {
+        Self {
+            log_level: DEFAULT_LOG_LEVEL,
+            sentry_dsn: None,
+        }
     }
+}
 
-    #[test]
-    fn test_from_env_invalid_metric_port() {
-        temp_env::with_vars(
-            vec![
-                (ENV_WEB_HOOK, Some(CORRECT_WEB_HOOK)),
-                (ENV_CHECK_INTERVAL, Some(CORRECT_CHECK_INTERVAL)),
-                (ENV_METRIC_IP, Some(CORRECT_METRIC_IP)),
-                (ENV_METRIC_PORT, Some("abcde")),
-            ],
-            || {
-                let result = Config::get_configurations();
-                assert!(result.is_err());
-            },
-        );
-    }
-
-    #[test]
-    fn test_from_env_invalid_unicode_character() {
-        temp_env::with_vars(
-            vec![(ENV_WEB_HOOK, Some("⛷")), (ENV_CHECK_INTERVAL, Some("⛷"))],
-            || {
-                let result = Config::get_configurations();
-                assert!(result.is_err());
-            },
-        );
-    }
+/// Parse a [`Level`] from any layer's string form.
+///
+/// The error names the value and the accepted set, because the previous system's failure —
+/// `LOG_LEVEL=FATAL`, a level `tracing` does not have — read only as "invalid level".
+fn deserialize_level<'de, D>(deserializer: D) -> Result<Level, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let raw = String::deserialize(deserializer)?;
+    Level::from_str(&raw).map_err(|_| {
+        serde::de::Error::custom(format!(
+            "invalid log level `{raw}`, expected one of TRACE, DEBUG, INFO, WARN, ERROR"
+        ))
+    })
 }
