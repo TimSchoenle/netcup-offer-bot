@@ -90,3 +90,7 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+# Local configuration layer: `./config.toml` is the default TOML source, so a working copy of
+# it holds the real Discord webhook.
+config.toml

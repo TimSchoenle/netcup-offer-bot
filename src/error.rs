@@ -2,10 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Tracing error")]
-    Logger(#[from] tracing::metadata::ParseLevelError),
     #[error("Config error: {0}")]
-    ConfigVar(#[from] std::env::VarError),
+    Config(#[from] crate::config::ConfigError),
     #[error("Parser error")]
     Parse(#[from] std::num::ParseIntError),
     #[error("Rss error: {0}")]
