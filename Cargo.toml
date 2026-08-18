@@ -10,6 +10,19 @@ path = "src/lib.rs"
 path = "src/main.rs"
 name = "netcup-offer-bot"
 
+# The documentation job, and nothing else. `terrace-config/schema` links `serde_json` and
+# compiles a derive macro over every config struct, which is weight an image that will never
+# print a table has no reason to carry — so the container builds with default features and CI
+# turns this on for the one step that renders the README.
+[features]
+config-schema = ["terrace-config/schema"]
+
+# Declared so `cargo clippy --all-targets --features config-schema` keeps the generator
+# compiling; `required-features` is what keeps it out of every build that does not ask for it.
+[[example]]
+name = "readme-variables"
+required-features = ["config-schema"]
+
 [dependencies]
 anyhow = { version = "1.0.100", features = ["backtrace"] }
 thiserror = "2.0.18"
@@ -24,22 +37,37 @@ tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = "0.1.18"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.22"
-serde = "1.0.228"
+# `derive` spelled out rather than inherited: the config structs derive `Deserialize`, and
+# relying on another dependency to have enabled the feature makes this crate stop compiling
+# the day that dependency drops it.
+serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 prometheus = { version = "0.14.0", features = ["process"] }
 prometheus_exporter = "0.8.5"
 secrecy = { version = "0.10.3", features = ["serde"] }
 # The layered loader: struct defaults, TOML, prefixed environment, a secrets directory and
 # `_FILE` indirection, so a mounted Kubernetes `Secret` can supply the webhook URL instead of an
-# environment variable. `loader` only — the `reload` supervisor would link notify and is not
-# usable here while the Prometheus exporter binds its socket process-globally.
+# environment variable.
+#
+# `explain` rides along because it costs no dependency at all — it is a second walk of the
+# layers and the strings that render it — and it answers the one question this deployment
+# actually gets asked: why a webhook mounted from a `Secret` is not the one being used. The boot
+# log prints it at `DEBUG`, so an operator turning the level up gets the answer without a
+# debugger.
+#
+# `reload` is deliberately absent: the supervisor would link notify, and rebuilding the runtime
+# is not usable here while the Prometheus exporter binds its socket process-globally. `schema`
+# is absent for the same kind of reason and arrives through the `config-schema` feature above,
+# which the container never enables.
+#
 # Pinned by tag, not branch: `cargo update` cannot then move the dependency silently.
-terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.2.0", default-features = false, features = ["loader"] }
+terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.5.0", default-features = false, features = ["loader", "explain"] }
 
 [dev-dependencies]
-# `figment::Jail` gives the config tests a scratch directory and an environment it restores
-# afterwards. The same figment `terrace-config` resolves, plus its `test` feature.
-figment = { version = "=0.10.19", features = ["test"] }
+# The same dependency as above with its test harness added, not a second copy: cargo unions the
+# features for test builds. `testing` derives every name it writes from the loader the harness
+# was built over, so a test cannot go on asserting a variable this crate has stopped reading.
+terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.5.0", default-features = false, features = ["testing"] }
 tempfile = "=3.27.0"
 serde_test = "=1.0.177"
 wiremock = "=0.6.5"
