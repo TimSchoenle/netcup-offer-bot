@@ -1,0 +1,248 @@
+{
+  "terrace_contract": 1,
+  "app": {
+    "name": "netcup-offer-bot",
+    "source": "https://github.com/TimSchoenle/netcup-offer-bot"
+  },
+  "schema": {
+    "schema_version": 1,
+    "dialect": {
+      "prefix": "NETCUP_OFFER_BOT_",
+      "nesting_separator": "__",
+      "indirection_suffix": "_FILE"
+    },
+    "loader": [
+      {
+        "env": "NETCUP_OFFER_BOT_CONFIG",
+        "role": "config",
+        "docs": "Names the TOML layer: a file, or a directory whose `*.toml` files are all merged in name order.",
+        "default": "config.toml"
+      },
+      {
+        "env": "NETCUP_OFFER_BOT_SECRETS_DIR",
+        "role": "secrets_dir",
+        "docs": "Names a directory of key-named files — a mounted Kubernetes `Secret` volume. Each file supplies the key its name spells.",
+        "default": null
+      }
+    ],
+    "keys": [
+      {
+        "path": "discord.webhook_url",
+        "env": "NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL",
+        "env_file": "NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE",
+        "secrets_file": "discord__webhook_url",
+        "docs": "Discord webhook the offers are posted to.\n\nSecret: it is a bearer credential — anyone holding it can post to the channel — so it\nstays wrapped from the layer that read it to the request that uses it. `SecretString`\nrefuses to implement `Serialize` for that reason, which is why the field is skipped on\nthe way out; the key keeps its row and its `secret` flag either way, and a required key\nhas no default to print.",
+        "ty": "SecretString",
+        "values": [],
+        "constraint": {
+          "type": "string"
+        },
+        "text_form": "text",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": null,
+        "default_value": null,
+        "note": null,
+        "required": true,
+        "secret": true,
+        "reserved": false
+      },
+      {
+        "path": "feed.check_interval_secs",
+        "env": "NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS",
+        "env_file": "NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS_FILE",
+        "secrets_file": "feed__check_interval_secs",
+        "docs": "Seconds between two RSS feed checks.\n\nSpelled in seconds rather than as a [`Duration`] so the TOML and the environment layer\nagree on one representation.",
+        "ty": "u64",
+        "values": [],
+        "constraint": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*\\+?[0-9]+\\s*$",
+          "type": "string"
+        },
+        "text_form": "integer",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": null,
+        "default_value": null,
+        "note": null,
+        "required": true,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "metrics.ip",
+        "env": "NETCUP_OFFER_BOT_METRICS__IP",
+        "env_file": "NETCUP_OFFER_BOT_METRICS__IP_FILE",
+        "secrets_file": "metrics__ip",
+        "docs": "Address the Prometheus exporter binds. `0.0.0.0` to reach it from outside the container.",
+        "ty": "IpAddr",
+        "values": [],
+        "constraint": {
+          "type": "string"
+        },
+        "text_form": "unknown",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "127.0.0.1",
+        "default_value": "127.0.0.1",
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "metrics.port",
+        "env": "NETCUP_OFFER_BOT_METRICS__PORT",
+        "env_file": "NETCUP_OFFER_BOT_METRICS__PORT_FILE",
+        "secrets_file": "metrics__port",
+        "docs": "Port the Prometheus exporter listens on.",
+        "ty": "u16",
+        "values": [],
+        "constraint": {
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*\\+?[0-9]+\\s*$",
+          "type": "string"
+        },
+        "text_form": "integer",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "9184",
+        "default_value": 9184,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.log_level",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL_FILE",
+        "secrets_file": "telemetry__log_level",
+        "docs": "The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`,\nin any case.\n\nParsed at boot so an unusable value fails the load rather than the first log line.\n`DEBUG` and `TRACE` additionally print which layer supplied each configuration key.",
+        "ty": "Level",
+        "values": [],
+        "text_form": "unknown",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "INFO",
+        "default_value": "INFO",
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry_dsn",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN_FILE",
+        "secrets_file": "telemetry__sentry_dsn",
+        "docs": "Sentry DSN. Unset disables Sentry entirely.\n\nSecret: a DSN is a write credential for the project's event stream, and skipped on the\nway out for the reason [`DiscordConfig::webhook_url`] is. The key still reports itself\nas unset by default, which is the whole of what a table can usefully say about an\noptional secret.",
+        "ty": "SecretString",
+        "values": [],
+        "constraint": {
+          "type": "string"
+        },
+        "text_form": "text",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": null,
+        "default_value": null,
+        "note": null,
+        "required": false,
+        "secret": true,
+        "reserved": false
+      }
+    ]
+  },
+  "json_schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false,
+    "properties": {
+      "discord": {
+        "additionalProperties": false,
+        "properties": {
+          "webhook_url": {
+            "description": "Discord webhook the offers are posted to.\n\nSecret: it is a bearer credential — anyone holding it can post to the channel — so it\nstays wrapped from the layer that read it to the request that uses it. `SecretString`\nrefuses to implement `Serialize` for that reason, which is why the field is skipped on\nthe way out; the key keeps its row and its `secret` flag either way, and a required key\nhas no default to print.",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "type": "object"
+      },
+      "feed": {
+        "additionalProperties": false,
+        "properties": {
+          "check_interval_secs": {
+            "description": "Seconds between two RSS feed checks.\n\nSpelled in seconds rather than as a [`Duration`] so the TOML and the environment layer\nagree on one representation.",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "metrics": {
+        "additionalProperties": false,
+        "properties": {
+          "ip": {
+            "default": "127.0.0.1",
+            "description": "Address the Prometheus exporter binds. `0.0.0.0` to reach it from outside the container.",
+            "type": "string"
+          },
+          "port": {
+            "default": 9184,
+            "description": "Port the Prometheus exporter listens on.",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "telemetry": {
+        "additionalProperties": false,
+        "properties": {
+          "log_level": {
+            "default": "INFO",
+            "description": "The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`,\nin any case.\n\nParsed at boot so an unusable value fails the load rather than the first log line.\n`DEBUG` and `TRACE` additionally print which layer supplied each configuration key."
+          },
+          "sentry_dsn": {
+            "description": "Sentry DSN. Unset disables Sentry entirely.\n\nSecret: a DSN is a write credential for the project's event stream, and skipped on the\nway out for the reason [`DiscordConfig::webhook_url`] is. The key still reports itself\nas unset by default, which is the whole of what a table can usefully say about an\noptional secret.",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "type": "object"
+      }
+    },
+    "title": "netcup-offer-bot configuration",
+    "type": "object"
+  },
+  "external": {
+    "env": [],
+    "ignore": [
+      "KUBERNETES_*",
+      "HOSTNAME"
+    ],
+    "unknown": "reject"
+  }
+}

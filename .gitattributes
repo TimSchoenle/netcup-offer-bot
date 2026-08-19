@@ -1,0 +1,4 @@
+# Shell scripts run on Linux runners and inside containers, so their line endings are not the
+# checkout platform's to choose: a CRLF checkout leaves a carriage return on the shebang line
+# and the kernel looks for an interpreter named "bash\r".
+*.sh text eol=lf
