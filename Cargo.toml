@@ -16,7 +16,7 @@ name = "netcup-offer-bot"
 # feature is turned on only by the documentation job and by the builder stage that writes the
 # config contract.
 [features]
-config-schema = ["terrace-config/schema"]
+config-schema = ["terrace-config/schema-cli"]
 
 # Declared so `cargo clippy --all-targets --features config-schema` keeps the generators
 # compiling; `required-features` is what keeps them out of every build that does not ask for them.
@@ -66,13 +66,13 @@ secrecy = { version = "0.10.3", features = ["serde"] }
 # which the container never enables.
 #
 # Pinned by tag, not branch: `cargo update` cannot then move the dependency silently.
-terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.6.0", default-features = false, features = ["loader", "explain"] }
+terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.9.0", default-features = false, features = ["loader", "explain"] }
 
 [dev-dependencies]
 # The same dependency as above with its test harness added, not a second copy: cargo unions the
 # features for test builds. `testing` derives every name it writes from the loader the harness
 # was built over, so a test cannot go on asserting a variable this crate has stopped reading.
-terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.6.0", default-features = false, features = ["testing"] }
+terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.9.0", default-features = false, features = ["testing"] }
 tempfile = "=3.27.0"
 serde_test = "=1.0.177"
 wiremock = "=0.6.5"

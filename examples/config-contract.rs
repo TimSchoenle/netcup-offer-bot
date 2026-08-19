@@ -16,8 +16,18 @@
 //! duplicates the other: that one renders tables for a human, this one renders a document for a
 //! pipeline.
 //!
-//! This file is a command line and nothing else. The document is built by
-//! [`netcup_offer_bot::config::contract`], which is in the library so that it can be tested.
+//! # What is left here
+//!
+//! The `--format` vocabulary, the argument parsing, the dispatch, the printing and the exit code
+//! are [`Cli`](terrace_config::schema::cli::Cli). They were the same program in every repository
+//! that had a generator, which is how three of them ended up disagreeing about how to cut a
+//! `LABEL` block back out of a Dockerfile.
+//!
+//! The document itself is built by [`contract`](config::contract::contract), which is in the
+//! library so that it can be tested, from the same [`external`](config::contract::external)
+//! surface handed to `Cli::contract_with` below.
+//! One declaration, two callers, and no way for the document the tests check and the document
+//! the build publishes to describe different external surfaces.
 //!
 //! # Nothing is read from the environment
 //!
@@ -39,127 +49,28 @@
 
 use std::process::ExitCode;
 
-use netcup_offer_bot::config::ConfigError;
-use netcup_offer_bot::config::contract;
-use terrace_config::schema::{Contract, DEFAULT_PATH};
+use netcup_offer_bot::config;
+use terrace_config::schema::JsonSchema;
+use terrace_config::schema::cli::Cli;
+
+/// The `$id` the generated JSON Schema carries.
+const SCHEMA_ID: &str = "https://github.com/TimSchoenle/netcup-offer-bot/config.schema.json";
 
 fn main() -> ExitCode {
-    let options = match Options::from_args() {
-        Ok(options) => options,
-        Err(message) => {
-            eprintln!("config-contract: {message}");
+    let schema = match config::schema() {
+        Ok(schema) => schema,
+        Err(error) => {
+            eprintln!("config-contract: {error}");
             return ExitCode::FAILURE;
         }
     };
 
-    match render(&options) {
-        Ok(rendered) => {
-            println!("{rendered}");
-            ExitCode::SUCCESS
-        }
-        Err(error) => {
-            eprintln!("config-contract: {error}");
-            ExitCode::FAILURE
-        }
-    }
+    Cli::new(config::contract::app())
+        .json_schema(
+            JsonSchema::new()
+                .title("netcup-offer-bot configuration")
+                .id(SCHEMA_ID),
+        )
+        .contract_with(&|builder| builder.external(config::contract::external()))
+        .main(schema)
 }
-
-fn render(options: &Options) -> Result<String, ConfigError> {
-    let contract = contract(options)?;
-
-    Ok(match options.format {
-        Format::Contract => contract.to_json()?,
-        Format::Labels => contract
-            .labels(DEFAULT_PATH)
-            .into_iter()
-            .map(|(name, value)| format!("{name}={value}"))
-            .collect::<Vec<_>>()
-            .join("\n"),
-        Format::Dockerfile => contract
-            .to_dockerfile_labels(DEFAULT_PATH)
-            .trim_end()
-            .to_owned(),
-    })
-}
-
-/// The contract, with whatever this build was told about itself.
-fn contract(options: &Options) -> Result<Contract, ConfigError> {
-    let mut app = contract::app();
-    if let Some(version) = &options.version {
-        app = app.version(version);
-    }
-    if let Some(revision) = &options.revision {
-        app = app.revision(revision);
-    }
-    if let Some(created) = &options.created {
-        app = app.created(created);
-    }
-    contract::contract(app)
-}
-
-/// What to emit, and what this build knows about itself.
-struct Options {
-    format: Format,
-    /// The release this build is of, spelled as the image tag spells it.
-    version: Option<String>,
-    /// The commit this build is of.
-    revision: Option<String>,
-    /// When this build happened, RFC 3339.
-    created: Option<String>,
-}
-
-/// Which rendering to emit.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Format {
-    /// The document the build embeds in its image and attaches to its digest.
-    Contract,
-    /// The image labels that make that document discoverable, one `NAME=value` per line.
-    Labels,
-    /// The same labels as the `LABEL` instruction to paste into the Dockerfile.
-    Dockerfile,
-}
-
-impl Options {
-    /// The contract itself, unless asked otherwise.
-    fn from_args() -> Result<Self, String> {
-        let mut options = Self {
-            format: Format::Contract,
-            version: None,
-            revision: None,
-            created: None,
-        };
-
-        let mut args = std::env::args().skip(1);
-        while let Some(flag) = args.next() {
-            match flag.as_str() {
-                "--format" => {
-                    options.format = match args.next().as_deref() {
-                        Some("contract") => Format::Contract,
-                        Some("labels") => Format::Labels,
-                        Some("dockerfile") => Format::Dockerfile,
-                        Some(other) => return Err(format!("unknown format `{other}`; {USAGE}")),
-                        None => return Err(format!("--format takes a value; {USAGE}")),
-                    };
-                }
-                "--version" => options.version = Some(value(&mut args, "--version takes a tag")?),
-                "--revision" => {
-                    options.revision = Some(value(&mut args, "--revision takes a commit")?);
-                }
-                "--created" => {
-                    options.created = Some(value(&mut args, "--created takes a timestamp")?);
-                }
-                other => return Err(format!("unknown argument `{other}`; {USAGE}")),
-            }
-        }
-
-        Ok(options)
-    }
-}
-
-/// The next argument, or the caller's own message for why it had to be there.
-fn value(args: &mut impl Iterator<Item = String>, expected: &str) -> Result<String, String> {
-    args.next().ok_or_else(|| format!("{expected}; {USAGE}"))
-}
-
-const USAGE: &str = "usage: config-contract [--format contract|labels|dockerfile] \
-                     [--version <tag>] [--revision <commit>] [--created <rfc3339>]";

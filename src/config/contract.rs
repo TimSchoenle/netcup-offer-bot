@@ -55,8 +55,16 @@ pub fn app() -> App {
 /// external surface. Neither depends on the machine this runs on: both are bugs in the
 /// annotations on [`Config`](super::Config) or in this function.
 pub fn contract(app: App) -> Result<Contract, ConfigError> {
-    schema()?
-        .into_contract(app)
-        .external(External::new().ignore("KUBERNETES_*").ignore("HOSTNAME"))
-        .build()
+    schema()?.into_contract(app).external(external()).build()
+}
+
+/// The environment this image reads that the loader does not own.
+///
+/// Two ignore patterns and no declared variables, for the reason [`contract`] gives. Public
+/// because the generator hands it to `Cli::contract_with` and this function builds a contract
+/// with it: one declaration, two callers, and no way for the document the tests check and the
+/// document the build publishes to describe different external surfaces.
+#[must_use]
+pub fn external() -> External {
+    External::new().ignore("KUBERNETES_*").ignore("HOSTNAME")
 }

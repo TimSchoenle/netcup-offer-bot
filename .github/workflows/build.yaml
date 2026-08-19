@@ -129,8 +129,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Check the committed contract and the Dockerfile LABEL block
-        run: .github/scripts/check-contract-drift.sh
+      # `image` is empty, so the two checks needing one are skipped and this job stays the
+      # cheap half.
+      - name: Check the committed contract and the Dockerfile LABEL region
+        uses: TimSchoenle/actions/actions/rust/config-contract@99c83581b3486a8a9f28e43226b8f02025fcdf9a # tag=actions-rust-config-contract-v1.1.0
+        with:
+          example: config-contract
+          features: config-schema
+          image: ''
 
   docker-build-test:
     name: Docker Build and Test (${{ matrix.arch }})
@@ -204,13 +210,23 @@ jobs:
       # The image, never the Dockerfile. A source diff cannot see a base image that overrode a
       # label, a `LABEL` line deleted on a branch nobody diffed, or a build argument that
       # silently failed to interpolate.
+      #
+      # The toolchain is here rather than at the top of the job because only this step needs
+      # it, and `cache: false` because this job also builds an image: a restored cache is
+      # writable by any branch, and caching in a job that produces a runtime artefact is the
+      # cache-poisoning path zizmor flags. Only the generator is compiled, so there is nearly
+      # nothing to save.
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+        with:
+          cache: false
+
       - name: Verify the image carries the contract labels
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          set -euo pipefail
-          docker inspect --format '{{json .Config.Labels}}' netcup-offer-bot:test > labels.json
-          .github/scripts/verify-contract-labels.sh labels.json ./contract-out/contract.labels "${PLATFORM}"
+        uses: TimSchoenle/actions/actions/rust/config-contract@99c83581b3486a8a9f28e43226b8f02025fcdf9a # tag=actions-rust-config-contract-v1.1.0
+        with:
+          example: config-contract
+          features: config-schema
+          image: netcup-offer-bot:test
 
       # The cross-check the dropped `sha256` label would have bought. The build is the one place
       # that holds both copies, so it costs nothing here and is invisible everywhere else — a
