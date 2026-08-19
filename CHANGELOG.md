@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v2.1.0...v2.1.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **ci:** make the contract attach and its discover actually work ([#485](https://github.com/TimSchoenle/netcup-offer-bot/issues/485)) ([bfb983f](https://github.com/TimSchoenle/netcup-offer-bot/commit/bfb983f90572cf0e00aeed1b9c894b6fbb05bdde))
+
 ## [2.1.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v2.0.1...v2.1.0) (2026-08-19)
 
 
