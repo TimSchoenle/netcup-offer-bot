@@ -355,37 +355,66 @@ jobs:
       # pins, and a tag can be moved. Attached verbatim — the bytes the generator wrote, with
       # nothing added afterwards. There is no digest field to fill in; the attachment to a
       # digest *is* the tie between image and document.
+      #
+      # Two spellings this step is picky about, both of which fail it outright:
+      #
+      #  - the registry is named. `oras` applies no implicit `docker.io` default the way buildx,
+      #    crane and cosign do — it reads the first segment of a bare `user/repo` as a registry
+      #    hostname and tries to resolve it in DNS.
+      #  - the contract is passed as a relative path from its own directory. `oras` rejects an
+      #    absolute one outright, and `--disable-path-validation` would only trade that for a
+      #    runner path published as the attachment's title annotation.
       - name: Attach the config contract to the digest
         env:
+          IMAGE: docker.io/${{ env.DOCKER_REPO }}
           DIGEST: ${{ steps.manifest.outputs.digest }}
         run: |
           set -euo pipefail
+          cd /tmp
           oras attach \
             --artifact-type application/vnd.terrace.config-schema.v1+json \
-            "${DOCKER_REPO}@${DIGEST}" \
-            /tmp/contract.json:application/json
+            "${IMAGE}@${DIGEST}" \
+            contract.json:application/json
 
-      # Discovered rather than assumed: `oras attach` does not report the referrer's own digest,
-      # and on a registry without the referrers API — Docker Hub — the attachment lands under
-      # the fallback tag scheme, which only a discover call resolves.
+      # Discovered rather than assumed: `oras attach` does not report the referrer's own digest.
+      #
+      # Polled rather than read once. Docker Hub serves the referrers API, so the attachment does
+      # not land under the fallback tag scheme — but its index is eventually consistent, and
+      # `/v2/.../referrers/<digest>` keeps answering with an empty index for seconds after the
+      # attach returns. A single read here fails the release over a contract that is attached.
       - name: Sign the config contract with GitHub OIDC Token
         env:
+          IMAGE: docker.io/${{ env.DOCKER_REPO }}
           DIGEST: ${{ steps.manifest.outputs.digest }}
         run: |
           set -euo pipefail
 
-          referrer="$(oras discover --format json \
-            --artifact-type application/vnd.terrace.config-schema.v1+json \
-            "${DOCKER_REPO}@${DIGEST}" | jq -r '.manifests[0].digest // empty')"
+          referrer=""
+          for attempt in 1 2 3 4 5 6; do
+            if [ "${attempt}" -gt 1 ]; then
+              sleep $(( (attempt - 1) * 5 ))
+            fi
+
+            # `.referrers` is the shape oras 1.3 emits; `.manifests` is accepted so a version bump
+            # that renames the field fails visibly here rather than signing nothing.
+            referrer="$(oras discover --format json \
+              --artifact-type application/vnd.terrace.config-schema.v1+json \
+              "${IMAGE}@${DIGEST}" \
+              | jq -r 'first((.referrers // .manifests // [])[].digest) // empty')"
+
+            if [ -n "${referrer}" ]; then
+              break
+            fi
+          done
 
           if [ -z "${referrer}" ]; then
-            echo "error: no config-schema referrer on ${DIGEST}, immediately after attaching" >&2
-            echo "       one. The registry did not keep it, and an unsigned contract is one no" >&2
-            echo "       chart will vendor." >&2
+            echo "error: no config-schema referrer on ${DIGEST}, 75s after attaching one. The" >&2
+            echo "       registry did not keep it, and an unsigned contract is one no chart" >&2
+            echo "       will vendor." >&2
             exit 1
           fi
 
-          cosign sign --yes "${DOCKER_REPO}@${referrer}"
+          cosign sign --yes "${IMAGE}@${referrer}"
 
   sentry-release:
     environment:
