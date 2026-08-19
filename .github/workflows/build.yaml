@@ -222,6 +222,7 @@ jobs:
           cache: false
 
       - name: Verify the image carries the contract labels
+        id: contract
         uses: TimSchoenle/actions/actions/rust/config-contract@99c83581b3486a8a9f28e43226b8f02025fcdf9a # tag=actions-rust-config-contract-v1.1.0
         with:
           example: config-contract
@@ -236,9 +237,14 @@ jobs:
       # `COPY` that lands the document somewhere the label does not name fails right here. A
       # `FROM scratch` image has no shell, and `docker cp` does not need one.
       - name: Verify the in-image contract is the document that was exported
+        env:
+          # The label set the step above rendered, as JSON. Read through the environment
+          # rather than interpolated into the script, which would be a shell injection
+          # wearing a template's clothes.
+          LABELS: ${{ steps.contract.outputs.labels }}
         run: |
           set -euo pipefail
-          contract_path="$(jq -r '.["dev.terrace.config.contract.path"]' labels.json)"
+          contract_path="$(printf '%s' "${LABELS}" | jq -r '.["dev.terrace.config.contract.path"]')"
           probe="$(docker create netcup-offer-bot:test)"
           docker cp "${probe}:${contract_path}" ./from-image.json
           docker rm "${probe}" > /dev/null
