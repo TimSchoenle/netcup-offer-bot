@@ -59,7 +59,7 @@ the matching architecture automatically, so the commands below are identical on 
 
 #### Quick start
 
-The examples pin `2.1.0`, the release this page was generated from; `latest` tracks the newest.
+The examples pin `2.1.1`, the release this page was generated from; `latest` tracks the newest.
 
 ```shell
   docker run \
@@ -68,7 +68,7 @@ The examples pin `2.1.0`, the release this page was generated from; `latest` tra
     -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS="180" \
     -v netcup-offer-bot-data:/app/data \
     -d \
-    timmi6790/netcup-offer-bot:2.1.0
+    timmi6790/netcup-offer-bot:2.1.1
   ```
 
 ## Configuration
@@ -179,7 +179,7 @@ indirection a projected volume uses, so the mount works as written:
     -v ./webhook:/run/secrets/discord__webhook_url:ro \
     -v netcup-offer-bot-data:/app/data \
     -d \
-    timmi6790/netcup-offer-bot:2.1.0
+    timmi6790/netcup-offer-bot:2.1.1
   ```
 
 Or Docker's `_FILE` convention, for a single secret:
