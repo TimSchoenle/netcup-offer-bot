@@ -1,3 +1,26 @@
+<!--
+Generated from .github/templates/README.md.hbs — edit that file, not this one. CI renders it on
+every pull request and commits the result back to the branch; a push to master whose README.md
+does not match its template fails the `readme` check in .github/workflows/docs.yaml.
+
+Variables come from `cargo run --features config-schema --example readme-variables`:
+
+    version              the [package] version, e.g. 2.0.1
+    repository           the GitHub repository, as owner/name
+    branch               the branch permanent links point at
+    image                the Docker Hub repository the image is published to
+    prefix               the prefix every configuration variable carries
+    nesting_separator    what separates nesting levels in an environment key
+    indirection_suffix   what marks a variable holding a path rather than a value
+    config_loader        the table of variables the loader reads
+    config_keys          the table of configuration keys
+    config_toml          a config.toml carrying every key
+
+The last three are derived from the `Config` type itself, by way of terrace-config's `schema`
+feature. Adding a key, changing a default or rewriting a field's doc comment updates this page in
+the same commit that changes the code — which is the point: a reference table maintained beside
+the type is a table that is wrong by the second release.
+-->
 <br/>
 <p align="center">
   <h3 align="center">Netcup Offer Bot</h3>
@@ -12,7 +35,7 @@
 <div align="center">
 
 ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/timmi6790/netcup-offer-bot)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/TimSchoenle/netcup-offer-bot/build.yml)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/TimSchoenle/netcup-offer-bot/build.yaml)
 ![Issues](https://img.shields.io/github/issues/TimSchoenle/netcup-offer-bot)
 [![codecov](https://codecov.io/gh/TimSchoenle/netcup-offer-bot/branch/master/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/TimSchoenle/netcup-offer-bot)
 ![License](https://img.shields.io/github/license/TimSchoenle/netcup-offer-bot)
@@ -36,6 +59,8 @@ the matching architecture automatically, so the commands below are identical on 
 
 #### Quick start
 
+The examples pin `2.0.1`, the release this page was generated from; `latest` tracks the newest.
+
 ```shell
   docker run \
     --name netcup-offer-bot \
@@ -43,7 +68,7 @@ the matching architecture automatically, so the commands below are identical on 
     -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS="180" \
     -v netcup-offer-bot-data:/app/data \
     -d \
-    timmi6790/netcup-offer-bot:latest
+    timmi6790/netcup-offer-bot:2.0.1
   ```
 
 ## Configuration
@@ -67,44 +92,78 @@ naming the key and both sources, rather than being resolved by precedence: a sta
 variable shadowing a webhook that has since been rotated would otherwise keep the bot posting to
 the old one, and the discrepancy would surface long after the deploy that caused it.
 
-**Nesting is `__` (two underscores)** — a single underscore is part of a field name. Case is
-folded, so `discord.webhook_url` is `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL` as a variable and
+**Nesting is `__`** — a single underscore is part of a field name. Case is folded,
+so `discord.webhook_url` is `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL` as a variable and
 `discord__webhook_url` as a file name.
+
+Run with `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL=DEBUG` and the boot log names the layer
+every key was read from, which is what answers "the `Secret` is mounted and the bot is still posting
+to the old webhook".
+
+#### The variables read before the layers exist
+
+These decide what the layers *are*, so no layer can supply them.
+
+| Variable | Role | Default | Purpose |
+|---|---|---|---|
+| `NETCUP_OFFER_BOT_CONFIG` | config | `config.toml` | Names the TOML layer: a file, or a directory whose `*.toml` files are all merged in name order. |
+| `NETCUP_OFFER_BOT_SECRETS_DIR` | secrets dir | — | Names a directory of key-named files — a mounted Kubernetes `Secret` volume. Each file supplies the key its name spells. |
 
 #### Keys
 
-| Key                                        | Required | Default     | Description                                              |
-|--------------------------------------------|----------|-------------|----------------------------------------------------------|
-| `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL`    | X        |             | Discord webhook the offers are posted to                 |
-| `NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS` | X      |             | Seconds between two RSS feed checks                      |
-| `NETCUP_OFFER_BOT_METRICS__IP`             |          | `127.0.0.1` | Prometheus exporter address                              |
-| `NETCUP_OFFER_BOT_METRICS__PORT`           |          | `9184`      | Prometheus exporter port                                 |
-| `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL`    |          | `INFO`      | One of `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`         |
-| `NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN`   |          |             | Sentry DSN; unset disables Sentry entirely               |
+| TOML | Type | Environment | Default | Flags | Purpose |
+|---|---|---|---|---|---|
+| `discord.webhook_url` | `SecretString` | `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL` | — | required, secret | Discord webhook the offers are posted to. |
+| `feed.check_interval_secs` | `u64` | `NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS` | — | required | Seconds between two RSS feed checks. |
+| `metrics.ip` | `IpAddr` | `NETCUP_OFFER_BOT_METRICS__IP` | `127.0.0.1` | — | Address the Prometheus exporter binds. `0.0.0.0` to reach it from outside the container. |
+| `metrics.port` | `u16` | `NETCUP_OFFER_BOT_METRICS__PORT` | `9184` | — | Port the Prometheus exporter listens on. |
+| `telemetry.log_level` | `Level` | `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL` | `INFO` | — | The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`, in any case. |
+| `telemetry.sentry_dsn` | `SecretString` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN` | unset | secret | Sentry DSN. Unset disables Sentry entirely. |
 
-Two further variables are read to decide what the layers *are*, and so cannot themselves be
-supplied by a layer:
-
-| Key                             | Default       | Description                                                        |
-|---------------------------------|---------------|--------------------------------------------------------------------|
-| `NETCUP_OFFER_BOT_CONFIG`       | `config.toml` | The TOML layer: a file, or a directory whose `*.toml` are merged   |
-| `NETCUP_OFFER_BOT_SECRETS_DIR`  |               | Directory of key-named files. Unset disables the layer; set but unreadable fails the boot |
+Every key has two further spellings, both mechanical and both left out of the table to keep it inside
+a page: appending `_FILE` to the environment variable names a *file* holding the value,
+and the TOML path with `.` replaced by `__` is that key's file name inside the secrets
+directory.
 
 #### `config.toml`
 
+Every key, commented out wherever leaving it out changes nothing, so this file and an empty one mean
+the same thing to the loader. What is left uncommented is exactly what has to be supplied — and each
+of those carries a placeholder rather than a value, so a copy left unedited fails at the key that was
+never filled in rather than running on it.
+
 ```toml
 [discord]
-webhook_url = "https://discord.com/api/webhooks/..."
+# Discord webhook the offers are posted to.
+# Type: SecretString
+# Required: nothing loads until this key is supplied.
+# Secret: the value below is a placeholder.
+webhook_url = "<secret>"
 
 [feed]
-check_interval_secs = 180
+# Seconds between two RSS feed checks.
+# Type: u64
+# Required: nothing loads until this key is supplied.
+check_interval_secs = 0
 
 [metrics]
-ip = "0.0.0.0"
-port = 9184
+# Address the Prometheus exporter binds. `0.0.0.0` to reach it from outside the container.
+# Type: IpAddr
+# ip = "127.0.0.1"
+
+# Port the Prometheus exporter listens on.
+# Type: u16
+# port = 9184
 
 [telemetry]
-log_level = "INFO"
+# The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`, in any case.
+# Type: Level
+# log_level = "INFO"
+
+# Sentry DSN. Unset disables Sentry entirely.
+# Type: SecretString
+# Secret: the value below is a placeholder.
+# sentry_dsn = "<secret>"
 ```
 
 #### Secrets from files
@@ -120,7 +179,7 @@ indirection a projected volume uses, so the mount works as written:
     -v ./webhook:/run/secrets/discord__webhook_url:ro \
     -v netcup-offer-bot-data:/app/data \
     -d \
-    timmi6790/netcup-offer-bot:latest
+    timmi6790/netcup-offer-bot:2.0.1
   ```
 
 Or Docker's `_FILE` convention, for a single secret:
@@ -131,6 +190,5 @@ Or Docker's `_FILE` convention, for a single secret:
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/TimSchoenle/netcup-offer-bot/blob/main/LICENSE.md)
-for
-more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/TimSchoenle/netcup-offer-bot/blob/master/LICENSE)
+for more information.

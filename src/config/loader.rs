@@ -4,9 +4,15 @@
 //! provider, the `_FILE` indirection and the shadow-key rejection — belongs to
 //! `terrace-config`. What stays here is the one thing that is ours: which environment names
 //! this deployment spells.
+//!
+//! Everything below goes through [`terrace`], so the loader that boots the process, the report
+//! that explains it and the schema the README is generated from are the same dialect by
+//! construction. A generator built over a second [`Terrace`] would document variables the
+//! process does not read.
 
 use serde::de::DeserializeOwned;
 use terrace_config::Terrace;
+use terrace_config::explain::Explanation;
 
 pub use terrace_config::Error as ConfigError;
 
@@ -24,11 +30,16 @@ const PREFIX: &str = "NETCUP_OFFER_BOT_";
 /// rotated in a mounted `Secret`.
 ///
 /// Both variable names below are literals even though `Terrace::new(PREFIX)` derives exactly
-/// these: the README documents them, and a name that exists only as a derivation inside a
-/// dependency is one no line of documentation can be held to. Nothing is reserved — this
-/// process reads no configuration key straight from the environment, so every key is one a
-/// file may supply.
-fn terrace() -> Terrace {
+/// these: naming them here is what puts them in the generated documentation table as the
+/// deployment's own, rather than as a default a dependency happens to hold. Nothing is
+/// reserved — this process reads no configuration key straight from the environment, so every
+/// key is one a file may supply.
+///
+/// Public because the tests build their sandbox over it — `testing::Harness::over` derives
+/// every name it writes from the loader it is handed, so a test cannot go on asserting a
+/// variable this function has stopped naming.
+#[must_use]
+pub fn terrace() -> Terrace {
     Terrace::new(PREFIX)
         .config_var("NETCUP_OFFER_BOT_CONFIG")
         .secrets_dir_var("NETCUP_OFFER_BOT_SECRETS_DIR")
@@ -42,4 +53,27 @@ fn terrace() -> Terrace {
 /// three layers.
 pub fn load<T: DeserializeOwned>() -> Result<T, ConfigError> {
     terrace().load()
+}
+
+/// Which layer supplied each key, re-read at the moment it is called.
+///
+/// Holds no configuration value — not redacted on the way out, never recorded — so the report
+/// is safe to log in full. It is what answers "the `Secret` is mounted and the bot is still
+/// posting to the old webhook": the mount is listed, and so is the stale environment variable
+/// sitting on top of it.
+///
+/// # Errors
+/// Returns [`ConfigError`] if a layer cannot be read at all — an unreadable secrets directory,
+/// or TOML that does not parse.
+pub fn explain() -> Result<Explanation, ConfigError> {
+    terrace().explain()
+}
+
+/// The configuration surface as a schema, for the documentation job.
+///
+/// Reads nothing from the environment, so it produces the same answer on a runner where none
+/// of the variables it describes are set.
+#[cfg(feature = "config-schema")]
+pub fn schema<T: terrace_config::schema::Describe + ?Sized>() -> terrace_config::schema::Schema {
+    terrace().schema::<T>()
 }

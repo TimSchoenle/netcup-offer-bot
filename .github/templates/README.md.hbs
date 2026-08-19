@@ -1,0 +1,154 @@
+<!--
+Generated from .github/templates/README.md.hbs — edit that file, not this one. CI renders it on
+every pull request and commits the result back to the branch; a push to master whose README.md
+does not match its template fails the `readme` check in .github/workflows/docs.yaml.
+
+Variables come from `cargo run --features config-schema --example readme-variables`:
+
+    version              the [package] version, e.g. 2.0.1
+    repository           the GitHub repository, as owner/name
+    branch               the branch permanent links point at
+    image                the Docker Hub repository the image is published to
+    prefix               the prefix every configuration variable carries
+    nesting_separator    what separates nesting levels in an environment key
+    indirection_suffix   what marks a variable holding a path rather than a value
+    config_loader        the table of variables the loader reads
+    config_keys          the table of configuration keys
+    config_toml          a config.toml carrying every key
+
+The last three are derived from the `Config` type itself, by way of terrace-config's `schema`
+feature. Adding a key, changing a default or rewriting a field's doc comment updates this page in
+the same commit that changes the code — which is the point: a reference table maintained beside
+the type is a table that is wrong by the second release.
+-->
+<br/>
+<p align="center">
+  <h3 align="center">Netcup Offer Bot</h3>
+
+  <p align="center">
+    <a href="https://github.com/{{ repository }}/issues">Report Bug</a>
+    .
+    <a href="https://github.com/{{ repository }}/issues">Request Feature</a>
+  </p>
+</p>
+
+<div align="center">
+
+![Docker Image Version (latest semver)](https://img.shields.io/docker/v/{{ image }})
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/{{ repository }}/build.yaml)
+![Issues](https://img.shields.io/github/issues/{{ repository }})
+[![codecov](https://codecov.io/gh/{{ repository }}/branch/{{ branch }}/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/{{ repository }})
+![License](https://img.shields.io/github/license/{{ repository }})
+
+</div>
+
+## About The Project
+
+RSS feed listener to discord webhook for https://www.netcup.com/de/deals
+
+### Installation - Helm chart
+
+- [Helm chart](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot)
+
+### Installation - Docker
+
+- [Docker Image](https://hub.docker.com/repository/docker/{{ image }})
+
+The image is published as a multi-platform manifest for `linux/amd64` and `linux/arm64`. Docker pulls
+the matching architecture automatically, so the commands below are identical on both.
+
+#### Quick start
+
+The examples pin `{{ version }}`, the release this page was generated from; `latest` tracks the newest.
+
+```shell
+  docker run \
+    --name netcup-offer-bot \
+    -e {{ prefix }}DISCORD{{ nesting_separator }}WEBHOOK_URL="https://discord.com/api/webhooks/..." \
+    -e {{ prefix }}FEED{{ nesting_separator }}CHECK_INTERVAL_SECS="180" \
+    -v netcup-offer-bot-data:/app/data \
+    -d \
+    {{ image }}:{{ version }}
+  ```
+
+## Configuration
+
+Configuration is layered by [terrace-config](https://github.com/TimSchoenle/terrace-config), so the
+Discord webhook can arrive as a mounted file rather than as an environment variable that shows up
+in `docker inspect` and in the environment of every child process.
+
+Lowest precedence first:
+
+1. The defaults compiled into the config structs.
+2. TOML at `${{ prefix }}CONFIG`, defaulting to `./config.toml` — a file, or every `*.toml`
+   directly inside it when it names a directory, merged in file-name order. A missing file is not
+   an error.
+3. `{{ prefix }}`-prefixed environment variables.
+4. Every key-named file in `${{ prefix }}SECRETS_DIR`.
+5. `{{ prefix }}<KEY>{{ indirection_suffix }}=/path`, which reads `<KEY>` from that path.
+
+**Layers 3, 4 and 5 are mutually exclusive per key.** A key supplied by two of them fails the boot
+naming the key and both sources, rather than being resolved by precedence: a stale environment
+variable shadowing a webhook that has since been rotated would otherwise keep the bot posting to
+the old one, and the discrepancy would surface long after the deploy that caused it.
+
+**Nesting is `{{ nesting_separator }}`** — a single underscore is part of a field name. Case is folded,
+so `discord.webhook_url` is `{{ prefix }}DISCORD{{ nesting_separator }}WEBHOOK_URL` as a variable and
+`discord{{ nesting_separator }}webhook_url` as a file name.
+
+Run with `{{ prefix }}TELEMETRY{{ nesting_separator }}LOG_LEVEL=DEBUG` and the boot log names the layer
+every key was read from, which is what answers "the `Secret` is mounted and the bot is still posting
+to the old webhook".
+
+#### The variables read before the layers exist
+
+These decide what the layers *are*, so no layer can supply them.
+
+{{{ config_loader }}}
+
+#### Keys
+
+{{{ config_keys }}}
+
+Every key has two further spellings, both mechanical and both left out of the table to keep it inside
+a page: appending `{{ indirection_suffix }}` to the environment variable names a *file* holding the value,
+and the TOML path with `.` replaced by `{{ nesting_separator }}` is that key's file name inside the secrets
+directory.
+
+#### `config.toml`
+
+Every key, commented out wherever leaving it out changes nothing, so this file and an empty one mean
+the same thing to the loader. What is left uncommented is exactly what has to be supplied — and each
+of those carries a placeholder rather than a value, so a copy left unedited fails at the key that was
+never filled in rather than running on it.
+
+```toml
+{{{ config_toml }}}
+```
+
+#### Secrets from files
+
+A Kubernetes `Secret` mounted as a volume, one file per key — the provider follows the `..data`
+indirection a projected volume uses, so the mount works as written:
+
+```shell
+  docker run \
+    --name netcup-offer-bot \
+    -e {{ prefix }}SECRETS_DIR="/run/secrets" \
+    -e {{ prefix }}FEED{{ nesting_separator }}CHECK_INTERVAL_SECS="180" \
+    -v ./webhook:/run/secrets/discord{{ nesting_separator }}webhook_url:ro \
+    -v netcup-offer-bot-data:/app/data \
+    -d \
+    {{ image }}:{{ version }}
+  ```
+
+Or Docker's `{{ indirection_suffix }}` convention, for a single secret:
+
+```shell
+  -e {{ prefix }}DISCORD{{ nesting_separator }}WEBHOOK_URL{{ indirection_suffix }}="/run/secrets/webhook"
+  ```
+
+## License
+
+Distributed under the MIT License. See [LICENSE](https://github.com/{{ repository }}/blob/{{ branch }}/LICENSE)
+for more information.
