@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.1.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v2.0.1...v2.1.0) (2026-08-19)
+
+
+### Features
+
+* **config:** publish the config contract with the image ([#483](https://github.com/TimSchoenle/netcup-offer-bot/issues/483)) ([08f96c5](https://github.com/TimSchoenle/netcup-offer-bot/commit/08f96c51b85893ddd01899c080a5ddb20e380c26))
+* **config:** update terrace-config to 0.5.0 and generate the README ([#481](https://github.com/TimSchoenle/netcup-offer-bot/issues/481)) ([58a0507](https://github.com/TimSchoenle/netcup-offer-bot/commit/58a05078727555d13f0e38d3a2ad48b8d467a628))
+
+
+### Miscellaneous
+
+* **deps:** update step-security/harden-runner action to v2.21.0 ([#482](https://github.com/TimSchoenle/netcup-offer-bot/issues/482)) ([e897155](https://github.com/TimSchoenle/netcup-offer-bot/commit/e89715577e9ebc4bca6c44804844de4eaf75cf3b))
+* **deps:** update timschoenle/actions/actions/helm/update-chart-version to vactions-helm-update-chart-version-v1.6.3 ([#479](https://github.com/TimSchoenle/netcup-offer-bot/issues/479)) ([8c2911b](https://github.com/TimSchoenle/netcup-offer-bot/commit/8c2911bcabe835d63f7ddfe0414deae88816b09a))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.38 ([#480](https://github.com/TimSchoenle/netcup-offer-bot/issues/480)) ([af9d523](https://github.com/TimSchoenle/netcup-offer-bot/commit/af9d5230f582b4da7a8e57d09a42a159a7b1cb13))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#476](https://github.com/TimSchoenle/netcup-offer-bot/issues/476)) ([39409f3](https://github.com/TimSchoenle/netcup-offer-bot/commit/39409f325c448269fe64d128be4110e092b02d91))
+* **deps:** lock file maintenance ([#478](https://github.com/TimSchoenle/netcup-offer-bot/issues/478)) ([3b59dfd](https://github.com/TimSchoenle/netcup-offer-bot/commit/3b59dfdd9edef1411251cd8a6530473a4b2191f1))
+
 ## [2.0.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v2.0.0...v2.0.1) (2026-08-16)
 
 
