@@ -197,9 +197,15 @@ LABEL version=${version} \
 # anything, so what makes these trustworthy is not how they were written but that CI compares the
 # built image's config blob against `contract.labels` from the same generator run — on every
 # platform — before anything is attached to the digest or signed.
+
+# The markers are the crate's own and are what the drift check cuts on. A substring test over
+# the whole file — what this repository did before — passes an image whose block was pasted
+# twice, and cutting by line count passes one that lost a label.
+# terrace-config:labels:begin
 LABEL dev.terrace.config.contract.version="1" \
       dev.terrace.config.contract.path="/config/contract.json" \
       dev.terrace.config.prefix="NETCUP_OFFER_BOT_"
+# terrace-config:labels:end
 
 COPY --from=env /etc/passwd /etc/passwd
 COPY --from=env /etc/group /etc/group

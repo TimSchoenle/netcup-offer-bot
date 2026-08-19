@@ -211,16 +211,18 @@ cargo run --features config-schema --example config-contract -- --format dockerf
 ```
 
 After changing a configuration key, regenerate the committed copy and the Dockerfile's `LABEL`
-block:
+region:
 
 ```shell
-.github/scripts/check-contract-drift.sh
+just regenerate
 ```
 
-It rewrites `docs/config.contract.json` in place and prints the `LABEL` block to paste if it
-changed, so a local run is also the fix. CI runs the same script, and separately checks the built
-**image** — on every platform in the index — against the labels the generator emitted, before
-anything is attached to the digest or signed.
+It rewrites `docs/config.contract.json` and the region between the `terrace-config:labels` markers
+in the `Dockerfile`, so a local run is the fix rather than a report. It writes and never checks —
+the checking is `TimSchoenle/actions/actions/rust/config-contract`, which diffs both against the
+configuration types on every pull request and then checks the built **image** against the labels
+the same generator emitted. The release workflow checks every platform in the index separately,
+before anything is attached to the digest or signed.
 
 ## License
 
