@@ -94,3 +94,7 @@ fabric.properties
 # Local configuration layer: `./config.toml` is the default TOML source, so a working copy of
 # it holds the real Discord webhook.
 config.toml
+
+# Host-side export of the container build contract stage:
+#   docker buildx build --target contract-export --output type=local,dest=./contract-out .
+/contract-out/

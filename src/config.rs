@@ -22,7 +22,17 @@
 //! every environment spelling, every default, and the *first paragraph* of each field's doc
 //! comment. Write that paragraph for an operator setting the value — anything below it stays
 //! here, for whoever reads the type.
+//!
+//! # The contract this image publishes
+//!
+//! Under the same feature, [`contract`] renders these types as the document the container build
+//! embeds in the image and attaches to its pushed digest, and the `dev.terrace.config.*` labels
+//! that make it discoverable. A key added below is a key the deployment side learns about in the
+//! same commit; `docs/config.contract.json` is the committed copy, and CI fails a pull request
+//! that changes one without the other.
 
+#[cfg(feature = "config-schema")]
+pub mod contract;
 mod loader;
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};

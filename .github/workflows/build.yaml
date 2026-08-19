@@ -106,6 +106,32 @@ jobs:
         uses: TimSchoenle/actions/actions/rust/clippy@dcfb46a6a17ad8565db74057ce60278953056ad5 # tag=actions-rust-clippy-v1.1.9
 
 
+  # The reverse gate on the config contract: regenerate the committed document and the
+  # Dockerfile's `LABEL` block from the Rust types and fail if either has drifted. A renamed key
+  # or a renamed prefix then shows up in the pull request that renamed it, as a diff a reviewer
+  # reads — one step earlier than the label check on the built image, and far cheaper.
+  #
+  # No toolchain setup: the runner image ships a current stable Rust, and this is a `cargo run`
+  # of one example.
+  config-contract:
+    name: Config Contract
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required to checkout the code
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Check the committed contract and the Dockerfile LABEL block
+        run: .github/scripts/check-contract-drift.sh
+
   docker-build-test:
     name: Docker Build and Test (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
@@ -158,6 +184,49 @@ jobs:
             VERSION=test
           cache-from: type=gha,scope=${{ matrix.arch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
+
+      # Exported from the same build graph the image came from, so the generator is not run a
+      # second time at a second moment and the labels cannot describe a different document than
+      # the one in the image. `VERSION` matches the image build's, because it reaches the
+      # document's `app.version` field and the two copies are compared below.
+      - name: Export the config contract
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+          docker buildx build \
+            --target contract-export \
+            --platform "${PLATFORM}" \
+            --output "type=local,dest=./contract-out" \
+            --build-arg VERSION=test \
+            .
+
+      # The image, never the Dockerfile. A source diff cannot see a base image that overrode a
+      # label, a `LABEL` line deleted on a branch nobody diffed, or a build argument that
+      # silently failed to interpolate.
+      - name: Verify the image carries the contract labels
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+          docker inspect --format '{{json .Config.Labels}}' netcup-offer-bot:test > labels.json
+          .github/scripts/verify-contract-labels.sh labels.json ./contract-out/contract.labels "${PLATFORM}"
+
+      # The cross-check the dropped `sha256` label would have bought. The build is the one place
+      # that holds both copies, so it costs nothing here and is invisible everywhere else — a
+      # stale in-image copy is exactly the failure nothing downstream can see.
+      #
+      # The path comes from the label rather than from a literal, which ties the two together: a
+      # `COPY` that lands the document somewhere the label does not name fails right here. A
+      # `FROM scratch` image has no shell, and `docker cp` does not need one.
+      - name: Verify the in-image contract is the document that was exported
+        run: |
+          set -euo pipefail
+          contract_path="$(jq -r '.["dev.terrace.config.contract.path"]' labels.json)"
+          probe="$(docker create netcup-offer-bot:test)"
+          docker cp "${probe}:${contract_path}" ./from-image.json
+          docker rm "${probe}" > /dev/null
+          cmp ./from-image.json ./contract-out/contract.json
 
       - name: Test Docker image runs
         run: |

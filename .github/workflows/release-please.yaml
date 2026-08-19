@@ -118,6 +118,31 @@ jobs:
           secrets: |
             sentry_token=${{ secrets.SENTRY_AUTH_TOKEN }}
 
+      # The same build graph the push above used, so the generator runs once per architecture
+      # and BuildKit serves this from the cache it just wrote. `VERSION` is the release tag,
+      # which is what reaches the document's `app.version`; the exported bytes are what get
+      # attached to the digest, so they have to be the bytes that went into the image.
+      - name: Export the config contract
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          set -euo pipefail
+          docker buildx build \
+            --target contract-export \
+            --platform "${PLATFORM}" \
+            --output "type=local,dest=/tmp/contract" \
+            --build-arg "VERSION=${TAG}" \
+            .
+
+      - name: Upload the config contract
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: contract-${{ matrix.arch }}
+          path: /tmp/contract/*
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Export digest
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
@@ -152,8 +177,27 @@ jobs:
         with:
           egress-policy: audit
 
+      # The contract check and the attach step both run from this job, and both read scripts
+      # from the repository.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      # Reads a specific platform's config blob and filesystem out of a multi-platform index
+      # without pulling it into a daemon that can only hold one architecture at a time.
+      - name: Install Crane
+        uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+
+      # Pinned by version as well as by commit: the attach below writes to a registry, and which
+      # fallback an OCI 1.0 registry gets — Docker Hub is one — is the client's decision.
+      - name: Install ORAS
+        uses: oras-project/setup-oras@1d808f7d7f6995cc68b7bf507bfe5c5446e1dc9d # v2.0.1
+        with:
+          version: 1.3.0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
@@ -170,6 +214,14 @@ jobs:
           path: /tmp/digests
           pattern: digests-*
           merge-multiple: true
+
+      # Not merged: each architecture's copy stays in its own directory so the step below can
+      # compare them instead of letting one silently overwrite the other.
+      - name: Download the config contracts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: /tmp/contracts
+          pattern: contract-*
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -204,6 +256,90 @@ jobs:
           echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
           echo "Multi-platform index digest: ${DIGEST}"
 
+      # Every architecture generates the document from one source tree with one set of
+      # arguments, so the copies must be byte-identical. If they are not, which one gets
+      # attached to the index would be arbitrary — so this is a failure, not a tie to break.
+      - name: Reduce the per-architecture contracts to one
+        run: |
+          set -euo pipefail
+
+          canonical=""
+          for dir in /tmp/contracts/contract-*; do
+            [ -d "${dir}" ] || continue
+            if [ -z "${canonical}" ]; then
+              canonical="${dir}"
+              continue
+            fi
+            cmp "${canonical}/contract.json"   "${dir}/contract.json"
+            cmp "${canonical}/contract.labels" "${dir}/contract.labels"
+          done
+
+          if [ -z "${canonical}" ]; then
+            echo "error: no build job exported a config contract, so there is nothing to" >&2
+            echo "       check the pushed image against." >&2
+            exit 1
+          fi
+
+          cp "${canonical}/contract.json"   /tmp/contract.json
+          cp "${canonical}/contract.labels" /tmp/contract.labels
+
+      # The checkpoint everything below rests on. Multi-platform, so it necessarily runs after
+      # the push — `--load` cannot take an index. The floating tag is briefly unverified, which
+      # is acceptable because charts pin digests and nothing is attached or signed until this
+      # passes.
+      #
+      # Every platform, read out of the index rather than out of the build matrix: labels live
+      # in each manifest's own config blob, so one architecture can carry them and another not,
+      # and a list maintained by hand here would be the first thing to go stale. The provenance
+      # and SBOM manifests carry `unknown/unknown` and are not platforms.
+      #
+      # `crane config` reports `.config.Labels`; `docker inspect` reports `.Config.Labels`.
+      # Reading the wrong one yields null, which the script refuses rather than reads as empty.
+      # `--platform` is not optional either: without it, `crane config` against an index does
+      # not fail loudly in every version.
+      - name: Verify the pushed image against its config contract
+        env:
+          DIGEST: ${{ steps.manifest.outputs.digest }}
+        run: |
+          set -euo pipefail
+
+          platforms="$(docker buildx imagetools inspect "${DOCKER_REPO}@${DIGEST}" --format '{{json .Manifest}}' \
+            | jq -r '.manifests[] | select(.platform.os != "unknown") | "\(.platform.os)/\(.platform.architecture)"')"
+
+          if [ -z "${platforms}" ]; then
+            echo "error: ${DIGEST} lists no platforms, so nothing was checked." >&2
+            exit 1
+          fi
+
+          status=0
+          for platform in ${platforms}; do
+            slug="${platform//\//-}"
+
+            crane config --platform "${platform}" "${DOCKER_REPO}@${DIGEST}" \
+              | jq -c '.config.Labels' > "labels.${slug}.json"
+
+            if ! .github/scripts/verify-contract-labels.sh \
+                   "labels.${slug}.json" /tmp/contract.labels "${platform}"; then
+              status=1
+              continue
+            fi
+
+            # The cross-check the dropped `sha256` label would have bought: the copy inside the
+            # image and the bytes about to be attached are one document. The path comes from
+            # the label, so a `COPY` that landed it elsewhere fails here.
+            contract_path="$(jq -r '.["dev.terrace.config.contract.path"]' "labels.${slug}.json")"
+            crane export --platform "${platform}" "${DOCKER_REPO}@${DIGEST}" - \
+              | tar -xO "${contract_path#/}" > "from-image.${slug}.json"
+
+            if ! cmp "from-image.${slug}.json" /tmp/contract.json; then
+              echo "error: ${platform}: the copy at ${contract_path} is not the document being" >&2
+              echo "       attached to this digest." >&2
+              status=1
+            fi
+          done
+
+          exit "${status}"
+
       - name: Sign the images with GitHub OIDC Token
         env:
           TAGS: ${{ steps.meta.outputs.tags }}
@@ -214,6 +350,42 @@ jobs:
             images+="${tag}@${DIGEST} "
           done
           cosign sign --yes ${images}
+
+      # Attached to the digest, not to a tag: the referrer's subject is the exact build a chart
+      # pins, and a tag can be moved. Attached verbatim — the bytes the generator wrote, with
+      # nothing added afterwards. There is no digest field to fill in; the attachment to a
+      # digest *is* the tie between image and document.
+      - name: Attach the config contract to the digest
+        env:
+          DIGEST: ${{ steps.manifest.outputs.digest }}
+        run: |
+          set -euo pipefail
+          oras attach \
+            --artifact-type application/vnd.terrace.config-schema.v1+json \
+            "${DOCKER_REPO}@${DIGEST}" \
+            /tmp/contract.json:application/json
+
+      # Discovered rather than assumed: `oras attach` does not report the referrer's own digest,
+      # and on a registry without the referrers API — Docker Hub — the attachment lands under
+      # the fallback tag scheme, which only a discover call resolves.
+      - name: Sign the config contract with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.manifest.outputs.digest }}
+        run: |
+          set -euo pipefail
+
+          referrer="$(oras discover --format json \
+            --artifact-type application/vnd.terrace.config-schema.v1+json \
+            "${DOCKER_REPO}@${DIGEST}" | jq -r '.manifests[0].digest // empty')"
+
+          if [ -z "${referrer}" ]; then
+            echo "error: no config-schema referrer on ${DIGEST}, immediately after attaching" >&2
+            echo "       one. The registry did not keep it, and an unsigned contract is one no" >&2
+            echo "       chart will vendor." >&2
+            exit 1
+          fi
+
+          cosign sign --yes "${DOCKER_REPO}@${referrer}"
 
   sentry-release:
     environment:

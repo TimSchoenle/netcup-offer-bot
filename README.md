@@ -188,6 +188,40 @@ Or Docker's `_FILE` convention, for a single secret:
   -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE="/run/secrets/webhook"
   ```
 
+#### The config contract
+
+Every release publishes the table above as a machine-readable document, so a chart deploying this
+image can be checked against what the image actually reads rather than against a copy of this page
+that may have drifted. The committed copy is [`docs/config.contract.json`](docs/config.contract.json).
+
+Each image carries the same document three ways:
+
+| Carrier | What it answers |
+|---|---|
+| `LABEL dev.terrace.config.*` in the image config blob | Does this image declare a contract, where is its offline copy, and which environment variables are its business — answerable in one registry request, with no layer pull |
+| `/config/contract.json` in the image | The offline copy, for a `docker save` tarball or an air-gapped mirror |
+| An OCI referrer of type `application/vnd.terrace.config-schema.v1+json` on the pushed digest, cosign-signed | The canonical fetch, tied to the exact build a chart pins |
+
+All three are rendered from the same document by one program:
+
+```shell
+cargo run --features config-schema --example config-contract -- --format contract
+cargo run --features config-schema --example config-contract -- --format labels
+cargo run --features config-schema --example config-contract -- --format dockerfile
+```
+
+After changing a configuration key, regenerate the committed copy and the Dockerfile's `LABEL`
+block:
+
+```shell
+.github/scripts/check-contract-drift.sh
+```
+
+It rewrites `docs/config.contract.json` in place and prints the `LABEL` block to paste if it
+changed, so a local run is also the fix. CI runs the same script, and separately checks the built
+**image** — on every platform in the index — against the labels the generator emitted, before
+anything is attached to the digest or signed.
+
 ## License
 
 Distributed under the MIT License. See [LICENSE](https://github.com/TimSchoenle/netcup-offer-bot/blob/master/LICENSE)
