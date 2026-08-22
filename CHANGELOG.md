@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.2.0](https://github.com/TimSchoenle/netcup-offer-bot/compare/v2.1.1...v2.2.0) (2026-08-22)
+
+
+### Features
+
+* **config:** take terrace-config v0.9.0 and the shared contract check ([#487](https://github.com/TimSchoenle/netcup-offer-bot/issues/487)) ([dfeee3e](https://github.com/TimSchoenle/netcup-offer-bot/commit/dfeee3e30be1ee9796c5c9036fcc6833da2b11e5))
+
+
+### Miscellaneous
+
+* **deps:** update docker/setup-buildx-action digest to 37fe631 ([#492](https://github.com/TimSchoenle/netcup-offer-bot/issues/492)) ([a22c8a4](https://github.com/TimSchoenle/netcup-offer-bot/commit/a22c8a4ccd495bd8ad8154e475798e4c6238be78))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-auto-approve-renovate.yaml to vworkflows-maintenance-auto-approve-renovate-v1.4.21 ([#491](https://github.com/TimSchoenle/netcup-offer-bot/issues/491)) ([108a7c3](https://github.com/TimSchoenle/netcup-offer-bot/commit/108a7c39515c61958571559cb9d83cc9ba933d3c))
+* **deps:** update timschoenle/actions/.github/workflows/maintenance-timed-auto-pr-approve.yaml to vworkflows-maintenance-timed-auto-pr-approve-v1.2.32 ([#490](https://github.com/TimSchoenle/netcup-offer-bot/issues/490)) ([a4ec1a7](https://github.com/TimSchoenle/netcup-offer-bot/commit/a4ec1a7c6d6beb19c295bae3ca9e1e6b1d1462af))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.39 ([#489](https://github.com/TimSchoenle/netcup-offer-bot/issues/489)) ([343d7fa](https://github.com/TimSchoenle/netcup-offer-bot/commit/343d7faca26a97127298dd84a68a7e7998bef5c6))
+
 ## [2.1.1](https://github.com/TimSchoenle/netcup-offer-bot/compare/v2.1.0...v2.1.1) (2026-08-19)
 
 
