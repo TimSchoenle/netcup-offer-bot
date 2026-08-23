@@ -87,7 +87,8 @@ jobs:
         id: config
         run: |
           set -euo pipefail
-          echo "json=$(cargo run --quiet --features config-schema --example readme-variables)" >> "$GITHUB_OUTPUT"
+          json="$(cargo run --quiet --features config-schema --example readme-variables)"
+          echo "json=${json}" >> "$GITHUB_OUTPUT"
 
       # `branch` names the default branch rather than taking its own default of `github.ref_name`.
       # On a pull_request event that is `<number>/merge`, which would render badge and permalink
@@ -165,7 +166,8 @@ jobs:
         id: config
         run: |
           set -euo pipefail
-          echo "json=$(cargo run --quiet --features config-schema --example readme-variables)" >> "$GITHUB_OUTPUT"
+          json="$(cargo run --quiet --features config-schema --example readme-variables)"
+          echo "json=${json}" >> "$GITHUB_OUTPUT"
 
       # `branch` names the default branch rather than taking its own default of `github.ref_name`.
       # On a pull_request event that is `<number>/merge`, which would render badge and permalink
