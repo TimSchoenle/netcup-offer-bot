@@ -1,115 +1,165 @@
 <!--
-Generated from .github/templates/README.md.hbs — edit that file, not this one. CI renders it on
-every pull request and commits the result back to the branch; a push to master whose README.md
-does not match its template fails the `readme` check in .github/workflows/docs.yaml.
+Generated from .github/templates/README.md.hbs. Edit that file, not this one.
 
-Variables come from `cargo run --features config-schema --example readme-variables`:
+CI renders it on every pull request and commits the result back to the branch. A push to master
+whose README.md does not match its template fails the `README` job in
+.github/workflows/docs.yaml.
 
-    version              the [package] version, e.g. 2.0.1
-    repository           the GitHub repository, as owner/name
-    branch               the branch permanent links point at
-    image                the Docker Hub repository the image is published to
-    prefix               the prefix every configuration variable carries
-    nesting_separator    what separates nesting levels in an environment key
-    indirection_suffix   what marks a variable holding a path rather than a value
-    config_loader        the table of variables the loader reads
-    config_keys          the table of configuration keys
-    config_toml          a config.toml carrying every key
+The configuration half of the payload comes from one command:
 
-The last three are derived from the `Config` type itself, by way of terrace-config's `schema`
-feature. Adding a key, changing a default or rewriting a field's doc comment updates this page in
-the same commit that changes the code — which is the point: a reference table maintained beside
-the type is a table that is wrong by the second release.
+    cargo run --quiet --features config-schema --example readme-variables
+
+The rest is derived by TimSchoenle/actions/actions/common/readme-variables, which reads
+Cargo.toml and walks docs/. Every string this page quotes that also lives in a manifest arrives
+that way, so no release, licence or edition is typed here.
+
+Nothing in this comment may contain a mustache that is not a real reference.
 -->
-<br/>
-<p align="center">
-  <h3 align="center">Netcup Offer Bot</h3>
 
-  <p align="center">
-    <a href="https://github.com/TimSchoenle/netcup-offer-bot/issues">Report Bug</a>
-    .
-    <a href="https://github.com/TimSchoenle/netcup-offer-bot/issues">Request Feature</a>
-  </p>
-</p>
+# netcup-offer-bot
 
-<div align="center">
+Watches the netcup deals RSS feed and posts new offers to a Discord webhook.
 
-![Docker Image Version (latest semver)](https://img.shields.io/docker/v/timmi6790/netcup-offer-bot)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/TimSchoenle/netcup-offer-bot/build.yaml)
-![Issues](https://img.shields.io/github/issues/TimSchoenle/netcup-offer-bot)
-[![codecov](https://codecov.io/gh/TimSchoenle/netcup-offer-bot/branch/master/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/TimSchoenle/netcup-offer-bot)
-![License](https://img.shields.io/github/license/TimSchoenle/netcup-offer-bot)
+[![Release](https://img.shields.io/github/v/release/TimSchoenle/netcup-offer-bot?sort=semver)](https://github.com/TimSchoenle/netcup-offer-bot/releases)
+[![Build](https://img.shields.io/github/actions/workflow/status/TimSchoenle/netcup-offer-bot/build.yaml?branch=master)](https://github.com/TimSchoenle/netcup-offer-bot/actions/workflows/build.yaml)
+[![Coverage](https://codecov.io/gh/TimSchoenle/netcup-offer-bot/branch/master/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/TimSchoenle/netcup-offer-bot)
+[![License](https://img.shields.io/github/license/TimSchoenle/netcup-offer-bot)](LICENSE)
 
-</div>
+## What this is
 
-## About The Project
+One process. It polls the netcup deals RSS feed at <https://www.netcup.com/rss/deals/de> and
+posts each item it has not seen before to a Discord webhook, as an embed carrying the title,
+description, link, publication date and categories.
 
-RSS feed listener to discord webhook for https://www.netcup.com/de/deals
+Seen is decided by publication date. After every round the newest `pubDate` is written to
+`./data/feed_state.json`, and an item dated at or before it is skipped. A process that starts
+without that file holds no watermark, so it posts everything the feed currently lists.
 
-### Installation - Helm chart
+The configuration table below is generated from the Rust types that load the configuration. So
+are [docs/config.contract.json](docs/config.contract.json) and the `dev.terrace.config.*` labels
+every image carries, which is what lets a chart be checked against the keys the image reads
+rather than against a copy of this page.
 
-- [Helm chart](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot)
+## Quick start
 
-### Installation - Docker
+```bash
+docker run --rm \
+  -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL="https://discord.com/api/webhooks/..." \
+  -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS=900 \
+  -v netcup-offer-bot-data:/app/data \
+  timmi6790/netcup-offer-bot:v2.1.1
+```
 
-- [Docker Image](https://hub.docker.com/repository/docker/timmi6790/netcup-offer-bot)
+Those two variables are the only required keys. The volume holds the watermark; drop it and
+every restart reposts whatever the feed still lists.
 
-The image is published as a multi-platform manifest for `linux/amd64` and `linux/arm64`. Docker pulls
-the matching architecture automatically, so the commands below are identical on both.
+## Table of contents
 
-#### Quick start
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Operations](#operations)
+- [Compatibility](#compatibility)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
 
-The examples pin `2.1.1`, the release this page was generated from; `latest` tracks the newest.
+## Features
 
-```shell
-  docker run \
-    --name netcup-offer-bot \
-    -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL="https://discord.com/api/webhooks/..." \
-    -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS="180" \
-    -v netcup-offer-bot-data:/app/data \
-    -d \
-    timmi6790/netcup-offer-bot:2.1.1
-  ```
+- **The webhook can arrive as a file.** `NETCUP_OFFER_BOT_<KEY>_FILE` names a path, and a secrets
+  directory supplies one key per file, so a mounted Kubernetes `Secret` reaches the process
+  without the URL turning up in `docker inspect` or in a child process environment.
+- A key supplied by two of the environment, the secrets directory and `_FILE` indirection fails
+  the boot naming both sources. Resolving it by precedence would let a stale variable go on
+  shadowing a webhook that has since been rotated.
+- Delivery retries five times. A `429` waits out the `retry-after` header plus a second; a `5xx`
+  or a connection failure backs off two seconds, then four, then eight. The fifth failure gives
+  up on that item and counts it.
+- A feed payload that does not begin with an `rss` tag is logged as a warning instead of counted
+  as a fetch error, because the upstream answers with an HTML page often enough that alerting on
+  it would be alerting on netcup's bad minute.
+- Four Prometheus metrics, on an exporter that binds `127.0.0.1:9184` by default.
+- Errors reach Sentry when a DSN is configured. The image build uploads debug symbols before it
+  strips the binary, so a musl release build still symbolicates.
+
+## Installation
+
+### Docker
+
+```bash
+docker pull timmi6790/netcup-offer-bot:v2.1.1
+```
+
+Published as a multi-platform manifest for `linux/amd64` and `linux/arm64`. Every release is
+pushed by digest, signed with cosign, and carries its configuration contract as an OCI referrer
+on that digest. Pin by digest in production. The Helm chart does.
+
+### Helm
+
+```bash
+helm repo add timschoenle https://timschoenle.github.io/helm-charts
+helm install netcup-offer-bot timschoenle/netcup-offer-bot
+```
+
+The chart pins the image by digest, and this repository's release workflow bumps it. Its values
+are at
+[TimSchoenle/helm-charts](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot).
+
+### From source
+
+```bash
+git clone https://github.com/TimSchoenle/netcup-offer-bot.git
+cd netcup-offer-bot
+cargo build --release
+```
+
+## Usage
+
+The binary takes no arguments. Everything it reads is configuration, and the two required keys
+have to come from somewhere before it starts:
+
+```bash
+NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE=./webhook \
+NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS=900 \
+  cargo run --release
+```
+
+It writes `./data/feed_state.json` relative to the working directory and creates the directory
+when it is missing.
+
+Run the checks CI runs:
+
+```bash
+just verify            # fmt, clippy, test
+```
+
+After changing a configuration key, rewrite what is generated from it:
+
+```bash
+just regenerate        # docs/config.contract.json and the Dockerfile LABEL region
+```
 
 ## Configuration
 
-Configuration is layered by [terrace-config](https://github.com/TimSchoenle/terrace-config), so the
-Discord webhook can arrive as a mounted file rather than as an environment variable that shows up
-in `docker inspect` and in the environment of every child process.
-
+Configuration is layered by [terrace-config](https://github.com/TimSchoenle/terrace-config).
 Lowest precedence first:
 
 1. The defaults compiled into the config structs.
-2. TOML at `$NETCUP_OFFER_BOT_CONFIG`, defaulting to `./config.toml` — a file, or every `*.toml`
-   directly inside it when it names a directory, merged in file-name order. A missing file is not
-   an error.
+2. TOML at `$NETCUP_OFFER_BOT_CONFIG`, defaulting to `./config.toml`. A file, or every `*.toml`
+   directly inside it when it names a directory, merged in file-name order. A missing file is
+   not an error.
 3. `NETCUP_OFFER_BOT_`-prefixed environment variables.
 4. Every key-named file in `$NETCUP_OFFER_BOT_SECRETS_DIR`.
-5. `NETCUP_OFFER_BOT_<KEY>_FILE=/path`, which reads `<KEY>` from that path.
+5. `NETCUP_OFFER_BOT_<KEY>_FILE=/path`, which reads the value from that path.
 
-**Layers 3, 4 and 5 are mutually exclusive per key.** A key supplied by two of them fails the boot
-naming the key and both sources, rather than being resolved by precedence: a stale environment
-variable shadowing a webhook that has since been rotated would otherwise keep the bot posting to
-the old one, and the discrepancy would surface long after the deploy that caused it.
+The last three are mutually exclusive per key. Two of them supplying one key fails the boot,
+naming the key and both sources.
 
-**Nesting is `__`** — a single underscore is part of a field name. Case is folded,
-so `discord.webhook_url` is `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL` as a variable and
+Nesting is `__`, because a single underscore is part of a field name. Case is folded, so
+`discord.webhook_url` is `NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL` as a variable and
 `discord__webhook_url` as a file name.
-
-Run with `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL=DEBUG` and the boot log names the layer
-every key was read from, which is what answers "the `Secret` is mounted and the bot is still posting
-to the old webhook".
-
-#### The variables read before the layers exist
-
-These decide what the layers *are*, so no layer can supply them.
-
-| Variable | Role | Default | Purpose |
-|---|---|---|---|
-| `NETCUP_OFFER_BOT_CONFIG` | config | `config.toml` | Names the TOML layer: a file, or a directory whose `*.toml` files are all merged in name order. |
-| `NETCUP_OFFER_BOT_SECRETS_DIR` | secrets dir | — | Names a directory of key-named files — a mounted Kubernetes `Secret` volume. Each file supplies the key its name spells. |
-
-#### Keys
 
 | TOML | Type | Environment | Default | Flags | Purpose |
 |---|---|---|---|---|---|
@@ -120,111 +170,76 @@ These decide what the layers *are*, so no layer can supply them.
 | `telemetry.log_level` | `Level` | `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL` | `INFO` | — | The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`, in any case. |
 | `telemetry.sentry_dsn` | `SecretString` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN` | unset | secret | Sentry DSN. Unset disables Sentry entirely. |
 
-Every key has two further spellings, both mechanical and both left out of the table to keep it inside
-a page: appending `_FILE` to the environment variable names a *file* holding the value,
-and the TOML path with `.` replaced by `__` is that key's file name inside the secrets
-directory.
+Run with `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL=DEBUG` and the boot log names the layer every
+key was read from. That is what answers "the `Secret` is mounted and the bot is still posting to
+the old webhook".
 
-#### `config.toml`
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md) has the rest: the two variables the loader reads
+before any layer exists, both further spellings of every key, a `config.toml` carrying all of
+them, the secrets-directory recipes, and the contract each image publishes.
 
-Every key, commented out wherever leaving it out changes nothing, so this file and an empty one mean
-the same thing to the loader. What is left uncommented is exactly what has to be supplied — and each
-of those carries a placeholder rather than a value, so a copy left unedited fails at the key that was
-never filled in rather than running on it.
+## Operations
 
-```toml
-[discord]
-# Discord webhook the offers are posted to.
-# Type: SecretString
-# Required: nothing loads until this key is supplied.
-# Secret: the value below is a placeholder.
-webhook_url = "<secret>"
+### Metrics
 
-[feed]
-# Seconds between two RSS feed checks.
-# Type: u64
-# Required: nothing loads until this key is supplied.
-check_interval_secs = 0
+The Prometheus exporter serves `/metrics` on the address `metrics.ip` and `metrics.port` name,
+`127.0.0.1:9184` unless configured otherwise. Bind `0.0.0.0` to reach it from outside the
+container.
 
-[metrics]
-# Address the Prometheus exporter binds. `0.0.0.0` to reach it from outside the container.
-# Type: IpAddr
-# ip = "127.0.0.1"
+| Metric | Type | Labels | Reports |
+| --- | --- | --- | --- |
+| `feed_counter` | counter | `feed` | Items a round found to be new, counted before they are sent |
+| `feed_fetch_duration_seconds` | histogram | `feed` | Seconds one fetch of the feed took |
+| `feed_fetch_errors_total` | counter | `feed` | Fetches that failed, malformed payloads excluded |
+| `webhook_errors_total` | counter | `feed` | Items still undelivered after the fifth attempt |
 
-# Port the Prometheus exporter listens on.
-# Type: u16
-# port = 9184
+### State
 
-[telemetry]
-# The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`, in any case.
-# Type: Level
-# log_level = "INFO"
+`./data/feed_state.json` holds one UTC timestamp per feed and is rewritten only by a round that
+moved one. The image's working directory is `/app`, so the file a deployment has to keep is
+`/app/data/feed_state.json`.
 
-# Sentry DSN. Unset disables Sentry entirely.
-# Type: SecretString
-# Secret: the value below is a placeholder.
-# sentry_dsn = "<secret>"
-```
+### Runtime posture
 
-#### Secrets from files
+The runtime stage is `FROM scratch`. It carries the stripped binary, the CA bundle, the zone
+database, `/etc/passwd`, `/etc/group` and the offline copy of the configuration contract at
+`/config/contract.json`. The process runs as `1001:1001` and writes to `/app/data` and stdout,
+nothing else.
 
-A Kubernetes `Secret` mounted as a volume, one file per key — the provider follows the `..data`
-indirection a projected volume uses, so the mount works as written:
+## Compatibility
 
-```shell
-  docker run \
-    --name netcup-offer-bot \
-    -e NETCUP_OFFER_BOT_SECRETS_DIR="/run/secrets" \
-    -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS="180" \
-    -v ./webhook:/run/secrets/discord__webhook_url:ro \
-    -v netcup-offer-bot-data:/app/data \
-    -d \
-    timmi6790/netcup-offer-bot:2.1.1
-  ```
+| | Supported |
+| --- | --- |
+| Rust | edition 2024 |
+| Platforms | `linux/amd64`, `linux/arm64` |
+| Helm chart | [`timschoenle/netcup-offer-bot`](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot) |
 
-Or Docker's `_FILE` convention, for a single secret:
+## Documentation
 
-```shell
-  -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE="/run/secrets/webhook"
-  ```
+| Document | Purpose |
+| --- | --- |
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Every configuration key this service reads, in every spelling that can supply it. |
+| [docs/config.contract.json](docs/config.contract.json) | — |
 
-#### The config contract
+## Contributing
 
-Every release publishes the table above as a machine-readable document, so a chart deploying this
-image can be checked against what the image actually reads rather than against a copy of this page
-that may have drifted. The committed copy is [`docs/config.contract.json`](docs/config.contract.json).
+Issues and pull requests are welcome. Commit messages follow Conventional Commits, which is what
+release-please reads to decide the next version, and `just verify` runs the checks a pull request
+is going to run anyway.
 
-Each image carries the same document three ways:
+Four things here are generated, and each names its source in its first lines: `README.md`,
+`docs/CONFIGURATION.md`, `docs/config.contract.json` and the `LABEL` region of the `Dockerfile`.
+`just regenerate` rewrites the last two. CI renders the first two, commits the result back to the
+branch, and fails a push to master that does not match.
 
-| Carrier | What it answers |
-|---|---|
-| `LABEL dev.terrace.config.*` in the image config blob | Does this image declare a contract, where is its offline copy, and which environment variables are its business — answerable in one registry request, with no layer pull |
-| `/config/contract.json` in the image | The offline copy, for a `docker save` tarball or an air-gapped mirror |
-| An OCI referrer of type `application/vnd.terrace.config-schema.v1+json` on the pushed digest, cosign-signed | The canonical fetch, tied to the exact build a chart pins |
+## Security
 
-All three are rendered from the same document by one program:
+Do not open a public issue for a vulnerability. [SECURITY.md](SECURITY.md) has the reporting
+route and the supported versions.
 
-```shell
-cargo run --features config-schema --example config-contract -- --format contract
-cargo run --features config-schema --example config-contract -- --format labels
-cargo run --features config-schema --example config-contract -- --format dockerfile
-```
-
-After changing a configuration key, regenerate the committed copy and the Dockerfile's `LABEL`
-region:
-
-```shell
-just regenerate
-```
-
-It rewrites `docs/config.contract.json` and the region between the `terrace-config:labels` markers
-in the `Dockerfile`, so a local run is the fix rather than a report. It writes and never checks —
-the checking is `TimSchoenle/actions/actions/rust/config-contract`, which diffs both against the
-configuration types on every pull request and then checks the built **image** against the labels
-the same generator emitted. The release workflow checks every platform in the index separately,
-before anything is attached to the digest or signed.
+The Discord webhook is the one credential this process holds, and anyone holding it can post to
+the channel. Supply it as a file rather than as an environment variable.
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/TimSchoenle/netcup-offer-bot/blob/master/LICENSE)
-for more information.
+`GPL-3.0-only`. [LICENSE](LICENSE) has the terms.
