@@ -2,6 +2,12 @@
 name = "netcup-offer-bot"
 version = "2.1.1"
 edition = "2024"
+# Read by the README render as well as by cargo. `readme-variables` takes the repository's
+# one-line description and its licence identifier from here and refuses to take either from the
+# GitHub API, so an edit made in the web UI cannot change the rendered page with no commit behind
+# it.
+description = "Watches the netcup deals RSS feed and posts new offers to a Discord webhook."
+license = "GPL-3.0-only"
 
 [lib]
 path = "src/lib.rs"

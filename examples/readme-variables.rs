@@ -1,18 +1,20 @@
-//! Emit the variables `.github/templates/README.md.hbs` is rendered with.
+//! Emit the half of the README payload that only this crate can answer.
 //!
-//! `README.md` is generated. This is the other half of that: the template holds the prose and
-//! this holds every value in it that is derivable from the code, so neither can drift from the
-//! crate it documents.
+//! `README.md` and `docs/CONFIGURATION.md` are generated. The template holds the prose, this
+//! holds the configuration facts derived from `Config`, and
+//! `TimSchoenle/actions/actions/common/readme-variables` derives the rest from `Cargo.toml` and
+//! `docs/`. That action reads this output through its `extra` input and deep-merges it, so
+//! anything it already derives is deliberately absent here: the repository slug, the branch, the
+//! release and the licence all reach the template as `repo.*` and `release.*`, and emitting a
+//! second copy under another name would be a second thing to keep true.
 //!
 //! ```text
 //! cargo run --quiet --features config-schema --example readme-variables
 //! ```
 //!
-//! One line of strict JSON on stdout, which is exactly what the `variables` input of
-//! `TimSchoenle/actions/actions/common/render-template-and-commit` takes. `serde_json` does the
-//! escaping, so a generated Markdown table full of `"`, `\` and newlines survives the trip
-//! through a workflow output verbatim — the reason this is a Rust example and not a shell
-//! script assembling JSON with `printf`.
+//! One line of strict JSON on stdout. `serde_json` does the escaping, so a generated Markdown
+//! table full of `"`, `\` and newlines survives the trip through a workflow output verbatim —
+//! the reason this is a Rust example and not a shell script assembling JSON with `printf`.
 //!
 //! It reads nothing from the environment, so it produces the same answer on a developer's
 //! machine and on a runner where none of the variables it describes are set. Rendering is
@@ -26,33 +28,18 @@ use netcup_offer_bot::config;
 use serde::Serialize;
 use terrace_config::schema::{Column, TomlExample};
 
-/// The GitHub repository, as `owner/name`.
-///
-/// Both the shields.io badges and the issue links are built from it, so moving the repository
-/// is one edit here rather than eight in the template.
-const REPOSITORY: &str = "TimSchoenle/netcup-offer-bot";
-
-/// The branch the permanent links in the README point at.
-const BRANCH: &str = "master";
-
 /// The Docker Hub repository the image is published to.
 ///
 /// Not derivable from the manifest: the namespace is a Docker Hub account rather than the
 /// GitHub owner, and the two names differ.
 const IMAGE: &str = "timmi6790/netcup-offer-bot";
 
-/// Everything `README.md.hbs` may reference.
+/// What the templates reference and no manifest holds.
 ///
-/// Strict mode is on in the workflow, so a template naming something absent here fails the
-/// render rather than silently emitting an empty table.
+/// Strict mode is on in the workflow, so a template naming something neither this struct nor
+/// the derived payload defines fails the render rather than silently emitting an empty table.
 #[derive(Serialize)]
 struct Variables {
-    /// The crate version, e.g. `2.0.1`.
-    version: &'static str,
-    /// The GitHub repository, as `owner/name`.
-    repository: &'static str,
-    /// The branch permanent links point at.
-    branch: &'static str,
     /// The Docker Hub repository, as `namespace/name`.
     image: &'static str,
     /// The prefix every configuration variable carries, e.g. `NETCUP_OFFER_BOT_`.
@@ -90,15 +77,12 @@ fn main() -> ExitCode {
 fn variables() -> Result<String, Box<dyn Error>> {
     let schema = config::schema()?;
 
-    // No preamble and no per-key spellings: the README states both, immediately above this
-    // snippet and in far more detail than a comment in a file can. What is left is what the
-    // section is for — the shape of the file, with every key in it.
+    // No preamble and no per-key spellings: `docs/CONFIGURATION.md` states both, immediately
+    // above this snippet and in far more detail than a comment in a file can. What is left is
+    // what the section is for — the shape of the file, with every key in it.
     let example = TomlExample::new().header(false).spellings(false);
 
     let variables = Variables {
-        version: env!("CARGO_PKG_VERSION"),
-        repository: REPOSITORY,
-        branch: BRANCH,
         image: IMAGE,
         prefix: schema.dialect.prefix.clone(),
         nesting_separator: schema.dialect.nesting_separator.clone(),

@@ -1,10 +1,10 @@
 name: Docs
 
-# `README.md` is generated from `.github/templates/README.md.hbs`. This workflow is what makes
-# that claim true in both directions.
+# `README.md` and `docs/CONFIGURATION.md` are generated from the templates in
+# `.github/templates/`. This workflow is what makes that claim true in both directions.
 #
-# On a pull request it renders the template and commits the result to the branch, so nothing the
-# README quotes is ever edited by hand: not the crate version its `docker run` examples pin, and
+# On a pull request it renders both templates and commits the result to the branch, so nothing
+# either page quotes is ever edited by hand: not the release its `docker run` examples pin, and
 # not the configuration tables, which are derived from the `Config` type by the
 # `readme-variables` example. The case that matters most is the release-please pull request —
 # that commit is the one which changes `version` in `Cargo.toml`, so it is also the one where the
@@ -12,9 +12,9 @@ name: Docs
 # released README already pins the version the merge is about to publish.
 #
 # Everywhere it cannot commit — a push to `master`, a pull request from a fork — it renders in
-# `check` mode instead, writing nothing and failing if the committed `README.md` is stale.
-# Without it, editing `README.md` directly would appear to work right up until the next pull
-# request silently reverted it.
+# `check` mode instead, writing nothing and failing if either committed file is stale. Without
+# it, editing a generated page directly would appear to work right up until the next pull request
+# silently reverted it.
 
 on:
   push:
@@ -78,19 +78,49 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
 
-      - name: Collect README variables
-        id: variables
-        run: echo "json=$(cargo run --quiet --features config-schema --example readme-variables)" >> "$GITHUB_OUTPUT"
+      # Two steps rather than one. The first is the only part of the payload this repository can
+      # answer for itself — the configuration tables and the dialect they are written in, out of
+      # the `Config` type. The second derives the rest from `Cargo.toml` and `docs/`, and
+      # deep-merges the first over it, so the release, the licence and the documentation index
+      # come from the files that already hold them.
+      - name: Generate the configuration payload
+        id: config
+        run: |
+          set -euo pipefail
+          json="$(cargo run --quiet --features config-schema --example readme-variables)"
+          echo "json=${json}" >> "$GITHUB_OUTPUT"
 
-      - name: Render and commit the README
+      # `branch` names the default branch rather than taking its own default of `github.ref_name`.
+      # On a pull_request event that is `<number>/merge`, which would render badge and permalink
+      # URLs the push to master then disagrees with, and the gate below would fail on every merge
+      # for a reason absent from the diff.
+      - name: Collect the README payload
+        id: variables
+        uses: TimSchoenle/actions/actions/common/readme-variables@b5b5c9e047f00ffa00b7772536c8bdb4f158f706 # tag=actions-common-readme-variables-v1.1.0
+        with:
+          branch: ${{ github.event.repository.default_branch }}
+          extra: ${{ steps.config.outputs.json }}
+
+      # Written but not committed here. The commit is the step below, over both files at once:
+      # two commits would each have to name the head the other just moved, and the API call that
+      # makes a verified commit rejects one whose parent has changed.
+      - name: Render the configuration page
+        uses: TimSchoenle/actions/actions/common/render-template@3b7d152374ee63e720e7c16bed8b088b40554911 # tag=actions-common-render-template-v1.1.1
+        with:
+          template: .github/templates/CONFIGURATION.md.hbs
+          output: docs/CONFIGURATION.md
+          variables: ${{ steps.variables.outputs.variables }}
+
+      - name: Render and commit the generated documentation
         id: readme
         uses: TimSchoenle/actions/actions/common/render-template-and-commit@15d83f02081c9dc8a844646199c63792dcccdfa8 # tag=actions-common-render-template-and-commit-v1.1.3
         with:
           template: .github/templates/README.md.hbs
           output: README.md
-          variables: ${{ steps.variables.outputs.json }}
+          variables: ${{ steps.variables.outputs.variables }}
           token: ${{ steps.generate_token.outputs.token }}
-          commit_message: "docs: render README from template"
+          file_pattern: "README.md docs/CONFIGURATION.md"
+          commit_message: "docs: render README and CONFIGURATION from their templates"
 
       - name: Summarise
         env:
@@ -98,9 +128,9 @@ jobs:
           COMMIT_URL: ${{ steps.readme.outputs.commit_url }}
         run: |
           if [ "${COMMITTED}" = "true" ]; then
-            echo "README.md re-rendered: ${COMMIT_URL}" >> "$GITHUB_STEP_SUMMARY"
+            echo "Generated documentation re-rendered: ${COMMIT_URL}" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "README.md already matched its template." >> "$GITHUB_STEP_SUMMARY"
+            echo "README.md and docs/CONFIGURATION.md already matched their templates." >> "$GITHUB_STEP_SUMMARY"
           fi
 
   check:
@@ -127,15 +157,42 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
 
-      - name: Collect README variables
-        id: variables
-        run: echo "json=$(cargo run --quiet --features config-schema --example readme-variables)" >> "$GITHUB_OUTPUT"
+      # Two steps rather than one. The first is the only part of the payload this repository can
+      # answer for itself — the configuration tables and the dialect they are written in, out of
+      # the `Config` type. The second derives the rest from `Cargo.toml` and `docs/`, and
+      # deep-merges the first over it, so the release, the licence and the documentation index
+      # come from the files that already hold them.
+      - name: Generate the configuration payload
+        id: config
+        run: |
+          set -euo pipefail
+          json="$(cargo run --quiet --features config-schema --example readme-variables)"
+          echo "json=${json}" >> "$GITHUB_OUTPUT"
 
-      # Writes nothing; fails with the first differing line when README.md is stale.
+      # `branch` names the default branch rather than taking its own default of `github.ref_name`.
+      # On a pull_request event that is `<number>/merge`, which would render badge and permalink
+      # URLs the push to master then disagrees with, and the gate below would fail on every merge
+      # for a reason absent from the diff.
+      - name: Collect the README payload
+        id: variables
+        uses: TimSchoenle/actions/actions/common/readme-variables@b5b5c9e047f00ffa00b7772536c8bdb4f158f706 # tag=actions-common-readme-variables-v1.1.0
+        with:
+          branch: ${{ github.event.repository.default_branch }}
+          extra: ${{ steps.config.outputs.json }}
+
+      # Both write nothing; each fails with the first differing line when its output is stale.
+      - name: Verify docs/CONFIGURATION.md is current
+        uses: TimSchoenle/actions/actions/common/render-template@3b7d152374ee63e720e7c16bed8b088b40554911 # tag=actions-common-render-template-v1.1.1
+        with:
+          template: .github/templates/CONFIGURATION.md.hbs
+          output: docs/CONFIGURATION.md
+          variables: ${{ steps.variables.outputs.variables }}
+          check: true
+
       - name: Verify README.md is current
         uses: TimSchoenle/actions/actions/common/render-template@3b7d152374ee63e720e7c16bed8b088b40554911 # tag=actions-common-render-template-v1.1.1
         with:
           template: .github/templates/README.md.hbs
           output: README.md
-          variables: ${{ steps.variables.outputs.json }}
+          variables: ${{ steps.variables.outputs.variables }}
           check: true
