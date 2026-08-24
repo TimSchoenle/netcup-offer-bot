@@ -27,7 +27,7 @@ impl FeedStates {
             info!("Loading feed state from file");
 
             let content = std::fs::read_to_string(file)?;
-            serde_json::from_str(&content).map_err(|e| e.into())
+            serde_json::from_str(&content).map_err(Into::into)
         } else {
             // Ensure that the path exists
             let prefix = file.parent().ok_or("Invalid FEED_SATE_FILE path")?;
@@ -45,12 +45,12 @@ impl FeedStates {
         }
     }
 
-    pub fn get_feed_or_create(&mut self, feed: &Feed) -> &mut FeedState {
-        self.feeds.entry(*feed).or_default()
+    pub fn get_feed_or_create(&mut self, feed: Feed) -> &mut FeedState {
+        self.feeds.entry(feed).or_default()
     }
 
     #[tracing::instrument]
-    pub fn get_new_feed(&mut self, feed: &Feed, items: Vec<Item>) -> Vec<Item> {
+    pub fn get_new_feed(&mut self, feed: Feed, items: Vec<Item>) -> Vec<Item> {
         if items.is_empty() {
             return items;
         }
@@ -260,7 +260,7 @@ mod tests_feed_states {
 
         // Initial state
         {
-            let state = feed_states.get_feed_or_create(&feed);
+            let state = feed_states.get_feed_or_create(feed);
             assert_eq!(state, &FeedState::default());
 
             state.set_last_update(new_time);
@@ -268,7 +268,7 @@ mod tests_feed_states {
 
         // Check if state is updated
         {
-            let state = feed_states.get_feed_or_create(&feed);
+            let state = feed_states.get_feed_or_create(feed);
             assert_eq!(state.last_update, Some(new_time));
         }
     }
@@ -277,7 +277,7 @@ mod tests_feed_states {
     fn test_get_new_feed_empty() {
         let mut feed_states = create_empty_feed_states();
 
-        let items = feed_states.get_new_feed(&Feed::Netcup, Vec::new());
+        let items = feed_states.get_new_feed(Feed::Netcup, Vec::new());
         assert!(items.is_empty());
     }
 
@@ -291,7 +291,7 @@ mod tests_feed_states {
             create_rss_item(get_current_utc_time()),
             create_rss_item(highest_time),
         ];
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert_eq!(items, filtered_items);
         assert_eq!(feed_states.feeds[&feed].last_update, Some(highest_time));
@@ -311,7 +311,7 @@ mod tests_feed_states {
             items.push(create_rss_item(time));
         }
 
-        let filtered_items = feed_states.get_new_feed(&feed, items);
+        let filtered_items = feed_states.get_new_feed(feed, items);
 
         assert!(filtered_items.is_empty());
         assert!(!feed_states.is_dirty());
@@ -334,7 +334,7 @@ mod tests_feed_states {
             items.push(create_rss_item(time));
         }
 
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(feed_states.is_dirty());
         assert_eq!(filtered_items.len(), items.len());
@@ -351,7 +351,7 @@ mod tests_feed_states {
         let time = feed_states.feeds[&feed].last_update.unwrap();
         let items = vec![create_rss_item(time), create_rss_item(time)];
 
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(!feed_states.is_dirty());
         assert!(filtered_items.is_empty());
@@ -377,7 +377,7 @@ mod tests_feed_states {
         let mut items = before.clone();
         items.append(&mut after.clone());
 
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(feed_states.is_dirty());
         assert_eq!(filtered_items.len(), after.len());

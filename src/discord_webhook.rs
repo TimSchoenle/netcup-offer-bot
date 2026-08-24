@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use reqwest::StatusCode;
+use reqwest::{Response, StatusCode};
 use rss::Item;
 use secrecy::{ExposeSecret, SecretString};
 use serde_json::json;
@@ -9,6 +9,12 @@ use tokio::time::sleep;
 use crate::Result;
 use crate::error::Error;
 use crate::feed::Feed;
+
+const MAX_ATTEMPTS: u32 = 5;
+
+const DEFAULT_RETRY_AFTER: Duration = Duration::from_secs(1);
+
+const RETRY_AFTER_BUFFER: Duration = Duration::from_secs(1);
 
 #[derive(Debug)]
 pub struct DiscordWebhook {
@@ -32,131 +38,136 @@ impl DiscordWebhook {
             item.title().unwrap_or("No title")
         );
 
-        let embed = self.build_embed(&item);
-        let payload = self.build_payload(feed, embed);
+        let embed = build_embed(&item);
+        let payload = build_payload(*feed, &embed);
 
         self.send_with_retry(&payload).await
     }
 
-    fn build_embed(&self, item: &Item) -> serde_json::Value {
-        let mut embed = json!({
-            "title": item.title().unwrap_or("No title"),
-            "description": item.description().unwrap_or("No description"),
-        });
-
-        if let Some(url) = item.link() {
-            embed["url"] = json!(url);
-        }
-
-        let mut fields = Vec::new();
-
-        if let Some(date) = item.pub_date() {
-            fields.push(json!({
-                "name": "Date",
-                "value": date,
-                "inline": false
-            }));
-        }
-
-        let categories = item
-            .categories()
-            .iter()
-            .map(|category| category.name.clone())
-            .collect::<Vec<String>>()
-            .join(", ");
-        if !categories.is_empty() {
-            fields.push(json!({
-                "name": "Categories",
-                "value": categories,
-                "inline": false
-            }));
-        }
-
-        if !fields.is_empty() {
-            embed["fields"] = json!(fields);
-        }
-
-        embed
-    }
-
-    fn build_payload(&self, feed: &Feed, embed: serde_json::Value) -> serde_json::Value {
-        json!({
-            "username": format!("Feed - {}", feed.name()),
-            "embeds": [embed]
-        })
-    }
-
     async fn send_with_retry(&self, payload: &serde_json::Value) -> Result<bool> {
         let mut attempts = 0;
-        const MAX_ATTEMPTS: u32 = 5;
 
         loop {
             attempts += 1;
-            let response = self
+            let backoff = match self
                 .client
                 // codeql[rust/cleartext-transmission]
                 .post(self.url.expose_secret())
                 .json(payload)
                 .send()
-                .await;
+                .await
+            {
+                Ok(response) if response.status().is_success() => return Ok(true),
+                Ok(response) if response.status() == StatusCode::TOO_MANY_REQUESTS => {
+                    if attempts >= MAX_ATTEMPTS {
+                        return Err(Error::custom("Max retries exceeded for rate limit"));
+                    }
 
-            match response {
-                Ok(res) => {
-                    if res.status().is_success() {
-                        return Ok(true);
-                    } else if res.status() == StatusCode::TOO_MANY_REQUESTS {
-                        if attempts >= MAX_ATTEMPTS {
-                            return Err(Error::custom(
-                                "Max retries exceeded for rate limit".to_string(),
-                            ));
-                        }
-
-                        let wait_seconds = if let Some(h) = res.headers().get("retry-after") {
-                            if let Ok(s) = h.to_str() {
-                                s.parse::<f64>().unwrap_or(1.0) as u64
-                            } else {
-                                1
-                            }
-                        } else {
-                            1
-                        };
-
-                        warn!(
-                            "Rate limited. Waiting for {} seconds before retry {}/{}",
-                            wait_seconds, attempts, MAX_ATTEMPTS
-                        );
-                        sleep(Duration::from_secs(wait_seconds + 1)).await; // Add buffer
-                        continue;
-                    } else if res.status().is_server_error() {
-                        if attempts >= MAX_ATTEMPTS {
-                            return Err(Error::custom(format!("Server error: {}", res.status())));
-                        }
-                        warn!(
-                            "Server error {}. Retrying {}/{}",
-                            res.status(),
-                            attempts,
-                            MAX_ATTEMPTS
-                        );
-                        sleep(Duration::from_secs(2u64.pow(attempts))).await; // Exponential backoff
-                        continue;
-                    } else {
+                    let wait = retry_after(&response) + RETRY_AFTER_BUFFER;
+                    warn!(
+                        "Rate limited. Waiting for {:?} before retry {}/{}",
+                        wait, attempts, MAX_ATTEMPTS
+                    );
+                    wait
+                }
+                Ok(response) if response.status().is_server_error() => {
+                    if attempts >= MAX_ATTEMPTS {
                         return Err(Error::custom(format!(
-                            "Failed to send webhook: {}",
-                            res.status()
+                            "Server error: {}",
+                            response.status()
                         )));
                     }
+
+                    warn!(
+                        "Server error {}. Retrying {}/{}",
+                        response.status(),
+                        attempts,
+                        MAX_ATTEMPTS
+                    );
+                    backoff(attempts)
+                }
+                Ok(response) => {
+                    return Err(Error::custom(format!(
+                        "Failed to send webhook: {}",
+                        response.status()
+                    )));
                 }
                 Err(e) => {
                     if attempts >= MAX_ATTEMPTS {
                         return Err(Error::custom(e.to_string()));
                     }
+
                     warn!(
                         "Network error: {}. Retrying {}/{}",
                         e, attempts, MAX_ATTEMPTS
                     );
-                    sleep(Duration::from_secs(2u64.pow(attempts))).await;
+                    backoff(attempts)
                 }
-            }
+            };
+
+            sleep(backoff).await;
         }
     }
+}
+
+fn build_embed(item: &Item) -> serde_json::Value {
+    let mut embed = json!({
+        "title": item.title().unwrap_or("No title"),
+        "description": item.description().unwrap_or("No description"),
+    });
+
+    if let Some(url) = item.link() {
+        embed["url"] = json!(url);
+    }
+
+    let mut fields = Vec::new();
+
+    if let Some(date) = item.pub_date() {
+        fields.push(json!({
+            "name": "Date",
+            "value": date,
+            "inline": false
+        }));
+    }
+
+    let categories = item
+        .categories()
+        .iter()
+        .map(|category| category.name.clone())
+        .collect::<Vec<String>>()
+        .join(", ");
+    if !categories.is_empty() {
+        fields.push(json!({
+            "name": "Categories",
+            "value": categories,
+            "inline": false
+        }));
+    }
+
+    if !fields.is_empty() {
+        embed["fields"] = json!(fields);
+    }
+
+    embed
+}
+
+fn build_payload(feed: Feed, embed: &serde_json::Value) -> serde_json::Value {
+    json!({
+        "username": format!("Feed - {}", feed.name()),
+        "embeds": [embed]
+    })
+}
+
+fn retry_after(response: &Response) -> Duration {
+    response
+        .headers()
+        .get("retry-after")
+        .and_then(|header| header.to_str().ok())
+        .and_then(|value| value.parse::<f64>().ok())
+        .and_then(|seconds| Duration::try_from_secs_f64(seconds).ok())
+        .unwrap_or(DEFAULT_RETRY_AFTER)
+}
+
+fn backoff(attempts: u32) -> Duration {
+    Duration::from_secs(2u64.pow(attempts))
 }

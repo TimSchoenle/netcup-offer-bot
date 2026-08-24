@@ -72,7 +72,7 @@ impl FeedChecker {
             Ok(feed_result) => {
                 // Filter out already sent items
                 trace!("Found {} items for feed", feed_result.items.len());
-                let items = self.states.get_new_feed(&feed, feed_result.items);
+                let items = self.states.get_new_feed(feed, feed_result.items);
                 if items.is_empty() {
                     debug!("No new items found");
                     return;

@@ -69,16 +69,11 @@ fn log_configuration_layers(level: tracing::Level) {
 }
 
 fn setup_sentry(dsn: Option<&SecretString>) -> Option<ClientInitGuard> {
-    // Only enable sentry if the dsn is set
-    let dsn = match dsn {
-        Some(dsn) => dsn,
-        None => {
-            info!("telemetry.sentry_dsn not set, skipping Sentry setup");
-            return None;
-        }
+    let Some(dsn) = dsn else {
+        info!("telemetry.sentry_dsn not set, skipping Sentry setup");
+        return None;
     };
 
-    // Sentry innit
     let mut options = sentry::ClientOptions::new()
         .traces_sample_rate(0.2)
         .attach_stacktrace(true);

@@ -35,8 +35,8 @@ fn is_expected_feed_parse_message(message: &str) -> bool {
 }
 
 impl Error {
-    pub fn custom<T: ToString>(msg: T) -> Self {
-        Self::Custom(msg.to_string())
+    pub fn custom(msg: impl Into<String>) -> Self {
+        Self::Custom(msg.into())
     }
 
     pub fn is_expected_feed_parse_error(&self) -> bool {

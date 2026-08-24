@@ -11,13 +11,13 @@ pub enum Feed {
 }
 
 impl Feed {
-    pub fn name(&self) -> &str {
+    pub fn name(self) -> &'static str {
         match self {
             Feed::Netcup => "Netcup",
         }
     }
 
-    pub fn url(&self) -> &str {
+    pub fn url(self) -> &'static str {
         match self {
             Feed::Netcup => "https://www.netcup.com/rss/deals/de",
         }
