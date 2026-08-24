@@ -19,7 +19,7 @@ pub use terrace_config::Error as ConfigError;
 /// The prefix every configuration variable carries.
 const PREFIX: &str = "NETCUP_OFFER_BOT_";
 
-/// The loader the process boots through.
+/// Builds the loader the process boots through.
 ///
 /// Layers, lowest precedence first: struct defaults, TOML at `$NETCUP_OFFER_BOT_CONFIG` (a
 /// file, or every `*.toml` in it if it names a directory), `NETCUP_OFFER_BOT_`-prefixed
@@ -45,7 +45,7 @@ pub fn terrace() -> Terrace {
         .secrets_dir_var("NETCUP_OFFER_BOT_SECRETS_DIR")
 }
 
-/// Load a typed configuration.
+/// Loads a typed configuration.
 ///
 /// # Errors
 /// Returns [`ConfigError`] if a required value is missing, a value fails to parse, a
@@ -55,7 +55,7 @@ pub fn load<T: DeserializeOwned>() -> Result<T, ConfigError> {
     terrace().load()
 }
 
-/// Which layer supplied each key, re-read at the moment it is called.
+/// Reports which layer supplied each key, re-read at the moment it is called.
 ///
 /// Holds no configuration value — not redacted on the way out, never recorded — so the report
 /// is safe to log in full. It is what answers "the `Secret` is mounted and the bot is still
@@ -69,7 +69,7 @@ pub fn explain() -> Result<Explanation, ConfigError> {
     terrace().explain()
 }
 
-/// The configuration surface as a schema, for the documentation job.
+/// Describes the configuration surface as a schema, for the documentation job.
 ///
 /// Reads nothing from the environment, so it produces the same answer on a runner where none
 /// of the variables it describes are set.

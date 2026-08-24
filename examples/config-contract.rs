@@ -1,4 +1,4 @@
-//! Emit the config contract, and the image labels that make it discoverable.
+//! Emits the config contract, and the image labels that make it discoverable.
 //!
 //! ```text
 //! cargo run --quiet --features config-schema --example config-contract -- --format contract    > docs/config.contract.json

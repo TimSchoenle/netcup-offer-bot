@@ -1,5 +1,9 @@
+//! One error type over everything a round can hit, so this crate matches on one type and not on
+//! five libraries' error types.
+
 use thiserror::Error;
 
+/// Anything that went wrong between reading the configuration and posting an item.
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Config error: {0}")]
@@ -24,10 +28,17 @@ pub enum Error {
     Prometheus(#[from] prometheus::Error),
     #[error("Prometheus exporter error")]
     PrometheusExport(#[from] prometheus_exporter::Error),
+    /// An unsuccessful HTTP status, or retries running out.
     #[error("Custom: {0}")]
     Custom(String),
 }
 
+/// Reports whether a parse failure is the one netcup produces when the deals list is empty.
+///
+/// Matched on the rendered message rather than on the `rss::Error::InvalidStartTag` behind it, so
+/// a release of `rss` that rewords the sentence turns this into `false` and puts the empty-feed
+/// case back into Sentry. Case-folded because the wording belongs to that crate and is not part of
+/// its API.
 fn is_expected_feed_parse_message(message: &str) -> bool {
     message
         .to_ascii_lowercase()
@@ -35,10 +46,15 @@ fn is_expected_feed_parse_message(message: &str) -> bool {
 }
 
 impl Error {
+    /// Builds an error carrying a message and nothing else.
     pub fn custom(msg: impl Into<String>) -> Self {
         Self::Custom(msg.into())
     }
 
+    /// Reports whether this is the empty-feed payload rather than a fetch worth counting.
+    ///
+    /// [`FeedChecker::check_feed`](crate::FeedChecker::check_feed) logs a `true` at `WARN`, which
+    /// keeps it out of Sentry and out of `feed_fetch_errors_total`.
     pub fn is_expected_feed_parse_error(&self) -> bool {
         match self {
             Self::Rss(err) => is_expected_feed_parse_message(&err.to_string()),

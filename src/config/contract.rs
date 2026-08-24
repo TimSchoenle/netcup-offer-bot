@@ -2,7 +2,7 @@
 //!
 //! The document a chart is validated against: every configuration key in every spelling that can
 //! supply it, the same keys as a JSON Schema, and the surface outside the loader's namespace. It
-//! is built from [`schema`](super::schema), so it describes the [`Config`](super::Config) this
+//! is built from [`schema`], so it describes the [`Config`](super::Config) this
 //! binary deserialises rather than a second account of it — and the three
 //! `dev.terrace.config.*` labels an image carries are rendered from the same [`Contract`], which
 //! is what stops a label from naming a prefix the loader does not read.
@@ -28,7 +28,7 @@ pub const APP_NAME: &str = "netcup-offer-bot";
 /// Where the source lives.
 pub const SOURCE: &str = "https://github.com/TimSchoenle/netcup-offer-bot";
 
-/// Which build a contract describes, before the caller states a release.
+/// Names the build a contract describes, before the caller states a release.
 ///
 /// The release is the caller's to add, because this crate has no honest answer for it.
 /// `CARGO_PKG_VERSION` looks like one and is not: it would go stale the moment release-please
@@ -40,8 +40,8 @@ pub fn app() -> App {
     App::new(APP_NAME).source(SOURCE)
 }
 
-/// The whole contract this image publishes: every configuration key, and everything else it
-/// reads.
+/// Builds the whole contract this image publishes: every configuration key, and everything else
+/// it reads.
 ///
 /// The external surface is two ignore patterns and no declared variables, and that is the honest
 /// answer for this image rather than an unfinished list. The chart passes configuration as
@@ -58,7 +58,7 @@ pub fn contract(app: App) -> Result<Contract, ConfigError> {
     schema()?.into_contract(app).external(external()).build()
 }
 
-/// The environment this image reads that the loader does not own.
+/// Declares the environment this image reads that the loader does not own.
 ///
 /// Two ignore patterns and no declared variables, for the reason [`contract`] gives. Public
 /// because the generator hands it to `Cli::contract_with` and this function builds a contract

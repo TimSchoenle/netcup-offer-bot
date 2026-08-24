@@ -1,3 +1,18 @@
+//! The process the container runs: a boot sequence, then one round per tick.
+//!
+//! Boot order is the load-bearing part. The configuration is read before the tracing subscriber
+//! exists, because the log level is one of the keys it carries, so a failure there is reported by
+//! `main`'s `Termination` and by nothing else. Everything installed after it is installed once: a
+//! changed log level or a rotated Sentry DSN reaches the process on the next restart and not
+//! before.
+//!
+//! Nothing after boot ends the process. A round logs and counts whatever it hits, and the interval
+//! stream has no end, so the `Ok(())` below is unreachable and the container exits only when it is
+//! stopped or when it panics.
+//!
+//! Ticks keep tokio's default burst behaviour: a round that runs longer than the interval is
+//! followed immediately by the next one instead of being skipped.
+
 #[macro_use]
 extern crate tracing;
 
@@ -16,16 +31,14 @@ use tracing_subscriber::{Layer, filter};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Loaded before anything is installed: every knob below, the log level included, is part of
-    // the same layered configuration, so a failure here is reported by `main`'s `Termination`
-    // rather than by a subscriber that does not exist yet.
     let config = Config::load()?;
 
     setup_tracing(config.telemetry.log_level);
 
     log_configuration_layers(config.telemetry.log_level);
 
-    // Prevents the process from exiting until all events are sent
+    // Bound for the whole of `main`: the guard flushes queued events when it drops, and a `_`
+    // binding would drop it at the end of this statement.
     let _sentry = setup_sentry(config.telemetry.sentry_dsn.as_ref());
 
     setup_metrics(&config.metrics.socket())?;
@@ -40,6 +53,11 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+/// Installs the subscriber: stdout at `level`, Sentry at `DEBUG` and above.
+///
+/// The two filters are independent on purpose. Sentry's layer keeps collecting `DEBUG` events as
+/// breadcrumbs however quiet stdout is, so an issue raised from an `ERROR` still arrives with the
+/// round that led to it attached.
 fn setup_tracing(level: tracing::Level) {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer().with_filter(filter::LevelFilter::from_level(level)))
@@ -47,7 +65,7 @@ fn setup_tracing(level: tracing::Level) {
         .init();
 }
 
-/// Report which layer supplied each configuration key.
+/// Reports which layer supplied each configuration key.
 ///
 /// The answer to "the `Secret` is mounted and the bot is still posting to the old webhook": the
 /// mount is listed, and so is the stale environment variable sitting on top of it. The report
@@ -68,6 +86,11 @@ fn log_configuration_layers(level: tracing::Level) {
     }
 }
 
+/// Initialises Sentry, or returns `None` when no DSN is configured.
+///
+/// The guard has to outlive everything worth reporting: dropping it flushes what is queued, and
+/// that is the only flush this process performs. One transaction in five is sampled, and the
+/// release is whatever `sentry::release_name!` reads out of the build.
 fn setup_sentry(dsn: Option<&SecretString>) -> Option<ClientInitGuard> {
     let Some(dsn) = dsn else {
         info!("telemetry.sentry_dsn not set, skipping Sentry setup");
@@ -84,6 +107,11 @@ fn setup_sentry(dsn: Option<&SecretString>) -> Option<ClientInitGuard> {
     Some(sentry::init((dsn.expose_secret(), options)))
 }
 
+/// Starts the Prometheus exporter on `socket`.
+///
+/// # Errors
+/// Fails if the address is already in use or cannot be bound. `main` propagates it, so a port
+/// clash stops the boot rather than leaving the process running without metrics.
 fn setup_metrics(socket: &SocketAddr) -> Result<()> {
     prometheus_exporter::start(*socket)?;
     Ok(())

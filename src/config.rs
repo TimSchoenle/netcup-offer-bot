@@ -20,16 +20,24 @@
 //! Under the `config-schema` feature these structs also derive `Describe`, and the
 //! configuration tables in `README.md` are generated from what it reports: every key path,
 //! every environment spelling, every default, and the *first paragraph* of each field's doc
-//! comment. Write that paragraph for an operator setting the value — anything below it stays
+//! comment. Write that paragraph for an operator setting the value. Anything below it stays
 //! here, for whoever reads the type.
 //!
-//! # The contract this image publishes
-//!
-//! Under the same feature, [`contract`] renders these types as the document the container build
-//! embeds in the image and attaches to its pushed digest, and the `dev.terrace.config.*` labels
-//! that make it discoverable. A key added below is a key the deployment side learns about in the
-//! same commit; `docs/config.contract.json` is the committed copy, and CI fails a pull request
-//! that changes one without the other.
+// Gated rather than written as `//!`, because the link below is to an item that only exists
+// under the feature and `rustdoc::broken_intra_doc_links` is denied. The section renders in the
+// documentation job, which builds with `--all-features`.
+#![cfg_attr(
+    feature = "config-schema",
+    doc = r"
+# The contract this image publishes
+
+Under the same feature, [`contract`] renders these types as the document the container build
+embeds in the image and attaches to its pushed digest, and the `dev.terrace.config.*` labels
+that make it discoverable. A key added below is a key the deployment side learns about in the
+same commit; `docs/config.contract.json` is the committed copy, and CI fails a pull request
+that changes one without the other.
+"
+)]
 
 #[cfg(feature = "config-schema")]
 pub mod contract;
@@ -50,32 +58,35 @@ const DEFAULT_METRIC_PORT: u16 = 9184;
 const DEFAULT_LOG_LEVEL: Level = Level::INFO;
 
 /// Everything the process reads before it starts.
-///
-/// The two derives behind `config-schema` are the documentation job's: `Describe` reports the
-/// keys and `Serialize` is what the generator reads the `Default` column out of. Neither has
-/// another reason to exist here, since the loader only ever *deserialises* — and the
-/// `#[config(...)]` attributes are gated the same way, because a helper attribute without the
-/// derive that declares it is a compile error rather than a no-op.
+// Not rustdoc: the two derives behind `config-schema` are the documentation job's, and a caller
+// of this type does nothing differently for knowing it. `Describe` reports the keys, `Serialize`
+// is what the generator reads the `Default` column out of, and the loader itself only ever
+// deserialises. The `#[config(...)]` attributes are gated the same way, because a helper
+// attribute without the derive that declares it is a compile error and not a no-op.
 #[derive(Debug, Deserialize)]
 #[cfg_attr(
     feature = "config-schema",
     derive(serde::Serialize, terrace_config::schema::Describe)
 )]
 pub struct Config {
+    /// No default; the boot fails without a webhook.
     #[cfg_attr(feature = "config-schema", config(nested))]
     pub discord: DiscordConfig,
+    /// Required. There is no default poll interval.
     #[cfg_attr(feature = "config-schema", config(nested))]
     pub feed: FeedConfig,
+    /// Absent binds `127.0.0.1:9184`.
     #[serde(default)]
     #[cfg_attr(feature = "config-schema", config(nested))]
     pub metrics: MetricsConfig,
+    /// Omitted, the process logs at `INFO` and stays out of Sentry.
     #[serde(default)]
     #[cfg_attr(feature = "config-schema", config(nested))]
     pub telemetry: TelemetryConfig,
 }
 
 impl Config {
-    /// Load the configuration from every layer.
+    /// Loads the configuration from every layer.
     ///
     /// # Errors
     /// Returns [`ConfigError`] if a required value is missing, a value fails to parse, a
@@ -112,7 +123,7 @@ impl Default for Config {
     }
 }
 
-/// The configuration surface as a schema, with its `Default` column filled in.
+/// Renders the configuration surface as a schema, with its `Default` column filled in.
 ///
 /// The generated half of `README.md`. It reads nothing from the environment, so it produces
 /// the same answer on a developer's machine and on a runner where none of the variables it
@@ -135,11 +146,12 @@ pub fn schema() -> Result<terrace_config::schema::Schema, ConfigError> {
 pub struct DiscordConfig {
     /// Discord webhook the offers are posted to.
     ///
-    /// Secret: it is a bearer credential — anyone holding it can post to the channel — so it
-    /// stays wrapped from the layer that read it to the request that uses it. `SecretString`
-    /// refuses to implement `Serialize` for that reason, which is why the field is skipped on
-    /// the way out; the key keeps its row and its `secret` flag either way, and a required key
-    /// has no default to print.
+    /// A bearer credential: anyone holding it can post to the channel. It stays wrapped from the
+    /// layer that read it to the request that uses it, so nothing between the two can print it.
+    // Not rustdoc: the paragraph above is rendered into the README table for an operator. Why the
+    // field is skipped on the way out is for whoever changes this line: `SecretString` has no
+    // `Serialize` impl, and the generated table loses nothing, since the key keeps its row and
+    // its `secret` flag and a required key has no default to print.
     #[serde(skip_serializing)]
     #[cfg_attr(feature = "config-schema", config(secret))]
     pub webhook_url: SecretString,
@@ -160,7 +172,7 @@ pub struct FeedConfig {
 }
 
 impl FeedConfig {
-    /// The poll interval as a [`Duration`].
+    /// Returns the poll interval as a [`Duration`].
     #[must_use]
     pub fn check_interval(&self) -> Duration {
         Duration::from_secs(self.check_interval_secs)
@@ -191,7 +203,7 @@ impl Default for MetricsConfig {
 }
 
 impl MetricsConfig {
-    /// The address the exporter binds.
+    /// Returns the address the exporter binds.
     #[must_use]
     pub fn socket(&self) -> SocketAddr {
         SocketAddr::new(self.ip, self.port)
@@ -218,10 +230,11 @@ pub struct TelemetryConfig {
     pub log_level: Level,
     /// Sentry DSN. Unset disables Sentry entirely.
     ///
-    /// Secret: a DSN is a write credential for the project's event stream, and skipped on the
-    /// way out for the reason [`DiscordConfig::webhook_url`] is. The key still reports itself
-    /// as unset by default, which is the whole of what a table can usefully say about an
-    /// optional secret.
+    /// A write credential for the project's event stream, wrapped for the reason
+    /// [`DiscordConfig::webhook_url`] is.
+    // Not rustdoc: skipped on the way out for the same reason as `webhook_url`. The key still
+    // reports itself as unset by default, which is all a table can usefully say about an
+    // optional secret.
     #[serde(skip_serializing)]
     #[cfg_attr(feature = "config-schema", config(secret))]
     pub sentry_dsn: Option<SecretString>,
@@ -236,7 +249,7 @@ impl Default for TelemetryConfig {
     }
 }
 
-/// Parse a [`Level`] from any layer's string form.
+/// Parses a [`Level`] from any layer's string form.
 ///
 /// The error names the value and the accepted set, because the previous system's failure —
 /// `LOG_LEVEL=FATAL`, a level `tracing` does not have — read only as "invalid level".
@@ -252,12 +265,16 @@ where
     })
 }
 
-/// Render a [`Level`] the way every layer spells it.
+/// Renders a [`Level`] the way every layer spells it.
 ///
 /// The inverse of [`deserialize_level`], and reachable only from the schema generator: nothing
 /// in this process serialises a `Config`, and `tracing::Level` has no `Serialize` impl of its
 /// own for either of them to use.
 #[cfg(feature = "config-schema")]
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde hands a `serialize_with` hook the field by reference"
+)]
 fn serialize_level<S>(level: &Level, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,

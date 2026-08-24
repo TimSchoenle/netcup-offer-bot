@@ -1,3 +1,11 @@
+//! The four Prometheus series this process exports, each labelled by feed.
+//!
+//! Each registers itself into the default registry the first time it is asked for, so none of the
+//! four appears in a scrape taken before the first round has run.
+//!
+//! A registration that fails is a duplicate metric name in this file, and it panics: the mistake
+//! is in the source, and the round that would have counted something is the round that finds it.
+
 use std::sync::OnceLock;
 
 use prometheus::{HistogramVec, IntCounterVec, register_histogram_vec, register_int_counter_vec};

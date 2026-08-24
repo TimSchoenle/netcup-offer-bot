@@ -1,3 +1,9 @@
+//! Delivery, driven against a mock Discord.
+//!
+//! What is pinned here is the retry: a `429` carrying `retry-after` is waited out and the item is
+//! posted on the second attempt rather than dropped. The webhook client is `reqwest`'s own, so a
+//! mock server is the only way to reach the loop at all.
+
 use netcup_offer_bot::discord_webhook::DiscordWebhook;
 use rss::Item;
 use secrecy::SecretString;
