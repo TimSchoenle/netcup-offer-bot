@@ -9,6 +9,12 @@ edition = "2024"
 description = "Watches the netcup deals RSS feed and posts new offers to a Discord webhook."
 license = "GPL-3.0-only"
 
+# Inherited rather than written on the package, even though there is one crate here. A second
+# crate added next to this one starts held to the same lints instead of to whatever its own
+# manifest happens to say.
+[lints]
+workspace = true
+
 [lib]
 path = "src/lib.rs"
 
@@ -93,3 +99,29 @@ codegen-units = 1
 # symbols no object file defines and an "undefined reference to
 # `encoding_rs::UTF_8'" failure when ld links the musl binary.
 debug = "limited"
+
+# The documentation gate. `missing_docs` covers the crate root, every module, every exported
+# item and every public field; the `doc` job in `.github/workflows/build.yaml` runs rustdoc with
+# `-D warnings`, so the rustdoc-only lints below fail a pull request instead of scrolling past in
+# a local build.
+[workspace.lints.rust]
+missing_docs = "warn"
+
+# `missing_errors_doc` and `missing_panics_doc` are already inside `pedantic`. Named again so
+# that the next person to argue with `pedantic` knows these two were chosen, not swept in.
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "warn"
+missing_panics_doc = "warn"
+doc_markdown = "warn"
+too_long_first_doc_paragraph = "warn"
+doc_link_with_quotes = "warn"
+doc_broken_link = "warn"
+doc_include_without_cfg = "warn"
+
+# Denied, not warned: a broken intra-doc link renders as the literal `[`Foo`]` on the page, so
+# the reader who needs it cannot see that it was meant to be a link.
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "deny"
+private_intra_doc_links = "warn"
+unescaped_backticks = "warn"

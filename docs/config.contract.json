@@ -31,7 +31,7 @@
         "env": "NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL",
         "env_file": "NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE",
         "secrets_file": "discord__webhook_url",
-        "docs": "Discord webhook the offers are posted to.\n\nSecret: it is a bearer credential — anyone holding it can post to the channel — so it\nstays wrapped from the layer that read it to the request that uses it. `SecretString`\nrefuses to implement `Serialize` for that reason, which is why the field is skipped on\nthe way out; the key keeps its row and its `secret` flag either way, and a required key\nhas no default to print.",
+        "docs": "Discord webhook the offers are posted to.\n\nA bearer credential: anyone holding it can post to the channel. It stays wrapped from the\nlayer that read it to the request that uses it, so nothing between the two can print it.",
         "ty": "SecretString",
         "values": [],
         "constraint": {
@@ -154,7 +154,7 @@
         "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN",
         "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN_FILE",
         "secrets_file": "telemetry__sentry_dsn",
-        "docs": "Sentry DSN. Unset disables Sentry entirely.\n\nSecret: a DSN is a write credential for the project's event stream, and skipped on the\nway out for the reason [`DiscordConfig::webhook_url`] is. The key still reports itself\nas unset by default, which is the whole of what a table can usefully say about an\noptional secret.",
+        "docs": "Sentry DSN. Unset disables Sentry entirely.\n\nA write credential for the project's event stream, wrapped for the reason\n[`DiscordConfig::webhook_url`] is.",
         "ty": "SecretString",
         "values": [],
         "constraint": {
@@ -182,7 +182,7 @@
         "additionalProperties": false,
         "properties": {
           "webhook_url": {
-            "description": "Discord webhook the offers are posted to.\n\nSecret: it is a bearer credential — anyone holding it can post to the channel — so it\nstays wrapped from the layer that read it to the request that uses it. `SecretString`\nrefuses to implement `Serialize` for that reason, which is why the field is skipped on\nthe way out; the key keeps its row and its `secret` flag either way, and a required key\nhas no default to print.",
+            "description": "Discord webhook the offers are posted to.\n\nA bearer credential: anyone holding it can post to the channel. It stays wrapped from the\nlayer that read it to the request that uses it, so nothing between the two can print it.",
             "type": "string",
             "writeOnly": true
           }
@@ -226,7 +226,7 @@
             "description": "The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`,\nin any case.\n\nParsed at boot so an unusable value fails the load rather than the first log line.\n`DEBUG` and `TRACE` additionally print which layer supplied each configuration key."
           },
           "sentry_dsn": {
-            "description": "Sentry DSN. Unset disables Sentry entirely.\n\nSecret: a DSN is a write credential for the project's event stream, and skipped on the\nway out for the reason [`DiscordConfig::webhook_url`] is. The key still reports itself\nas unset by default, which is the whole of what a table can usefully say about an\noptional secret.",
+            "description": "Sentry DSN. Unset disables Sentry entirely.\n\nA write credential for the project's event stream, wrapped for the reason\n[`DiscordConfig::webhook_url`] is.",
             "type": "string",
             "writeOnly": true
           }

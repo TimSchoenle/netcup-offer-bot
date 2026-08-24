@@ -89,6 +89,10 @@ fn env_overrides_every_default() {
 /// where deriving the name would test the wrong thing: `jail.config` sets
 /// `$NETCUP_OFFER_BOT_CONFIG` as well, and the default path is exactly what is under test.
 #[test]
+#[allow(
+    clippy::duration_suboptimal_units,
+    reason = "the literal mirrors check_interval_secs in the TOML above it"
+)]
 fn a_toml_file_supplies_the_whole_configuration() {
     harness().run(|jail| {
         jail.write(

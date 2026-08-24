@@ -1,3 +1,12 @@
+//! The watermark each feed has been posted up to, and the file that holds it.
+//!
+//! One publication date per feed, written as whole seconds since the epoch in one JSON file. A
+//! deployment that loses the file reposts what the feed still lists, which is why a missing file
+//! is the first-run case here and never an error.
+//!
+//! Nothing locks the file. Two containers over one volume would overwrite each other's dates, and
+//! the process is written on the assumption that it holds the volume alone.
+
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -8,14 +17,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::feed::Feed;
 
+/// Where the watermark file lives, relative to the working directory.
+///
+/// The image sets that to `/app` and the README mounts a volume at `/app/data`, so this is the
+/// one path a deployment has to keep across restarts.
 const FEED_STATE_FILE: &str = "./data/feed_state.json";
 
+/// Every feed's watermark, as the file holds them.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct FeedStates {
     feeds: HashMap<Feed, FeedState>,
 }
 
 impl FeedStates {
+    /// Reads [`FEED_STATE_FILE`], or starts empty and creates the directory it will be written
+    /// to.
+    ///
+    /// # Errors
+    /// Fails if the file exists and cannot be read or does not parse, or if the directory cannot
+    /// be created.
     pub fn load() -> crate::Result<Self> {
         let path = Path::new(FEED_STATE_FILE);
         FeedStates::load_from_path(path)
@@ -27,9 +47,8 @@ impl FeedStates {
             info!("Loading feed state from file");
 
             let content = std::fs::read_to_string(file)?;
-            serde_json::from_str(&content).map_err(|e| e.into())
+            serde_json::from_str(&content).map_err(Into::into)
         } else {
-            // Ensure that the path exists
             let prefix = file.parent().ok_or("Invalid FEED_SATE_FILE path")?;
             std::fs::create_dir_all(prefix)?;
 
@@ -45,12 +64,19 @@ impl FeedStates {
         }
     }
 
-    pub fn get_feed_or_create(&mut self, feed: &Feed) -> &mut FeedState {
-        self.feeds.entry(*feed).or_default()
+    /// Returns the feed's watermark, inserting an empty one the first time a feed is seen.
+    pub fn get_feed_or_create(&mut self, feed: Feed) -> &mut FeedState {
+        self.feeds.entry(feed).or_default()
     }
 
+    /// Returns the items dated after the feed's watermark, in the order they arrived, and moves
+    /// the watermark to the newest of them.
+    ///
+    /// An item is dropped, and the drop logged, when it carries no `pubDate` or one that is not
+    /// RFC 2822. The watermark moves before any of these items has been delivered, so a caller
+    /// that fails to send one does not get it offered again.
     #[tracing::instrument]
-    pub fn get_new_feed(&mut self, feed: &Feed, items: Vec<Item>) -> Vec<Item> {
+    pub fn get_new_feed(&mut self, feed: Feed, items: Vec<Item>) -> Vec<Item> {
         if items.is_empty() {
             return items;
         }
@@ -89,9 +115,7 @@ impl FeedStates {
             }
         }
 
-        // Store new last date if found
         if let Some(date) = last_date {
-            // Convert to UTC
             let date = date.with_timezone(&Utc);
             feed_state.set_last_update(date);
         }
@@ -99,10 +123,12 @@ impl FeedStates {
         sorted
     }
 
+    /// Reports whether any watermark has moved since the last save.
     pub fn is_dirty(&self) -> bool {
         self.feeds.values().any(|state| state.dirty)
     }
 
+    /// Writes the watermarks to [`FEED_STATE_FILE`], or does nothing if none has moved.
     #[tracing::instrument]
     pub async fn save(&mut self) -> crate::Result<()> {
         self.save_to_path(Path::new(FEED_STATE_FILE)).await
@@ -117,7 +143,6 @@ impl FeedStates {
 
         debug!("Saving feed state to file");
 
-        // Save to file
         tokio::fs::write(file, serde_json::to_string_pretty(self)?).await?;
 
         self.un_dirty();
@@ -126,10 +151,14 @@ impl FeedStates {
     }
 }
 
+/// One feed's watermark.
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct FeedState {
+    /// The newest publication date selected so far. `None` until a round selects its first item.
     #[serde(with = "ts_seconds_option")]
     last_update: Option<DateTime<Utc>>,
+    /// Whether [`last_update`](Self::last_update) has moved since the last save. Never written to
+    /// the file, so a state read back from disk starts clean.
     #[serde(skip_serializing, default)]
     dirty: bool,
 }
@@ -139,11 +168,18 @@ impl FeedState {
         Self { last_update, dirty }
     }
 
+    /// Reports whether `date` is at or before the watermark, and so already posted.
+    ///
+    /// A feed holding no watermark yet answers `false` to every date.
     pub fn is_before(&self, date: &DateTime<FixedOffset>) -> bool {
         self.last_update
             .is_some_and(|last_update| *date <= last_update)
     }
 
+    /// Moves the watermark to `date` and marks the set for saving.
+    ///
+    /// The date is taken as given rather than compared, so a caller passing an older one moves the
+    /// watermark backwards and reposts everything between.
     pub fn set_last_update(&mut self, date: DateTime<Utc>) {
         self.last_update = Some(date);
         self.dirty = true;
@@ -260,7 +296,7 @@ mod tests_feed_states {
 
         // Initial state
         {
-            let state = feed_states.get_feed_or_create(&feed);
+            let state = feed_states.get_feed_or_create(feed);
             assert_eq!(state, &FeedState::default());
 
             state.set_last_update(new_time);
@@ -268,7 +304,7 @@ mod tests_feed_states {
 
         // Check if state is updated
         {
-            let state = feed_states.get_feed_or_create(&feed);
+            let state = feed_states.get_feed_or_create(feed);
             assert_eq!(state.last_update, Some(new_time));
         }
     }
@@ -277,7 +313,7 @@ mod tests_feed_states {
     fn test_get_new_feed_empty() {
         let mut feed_states = create_empty_feed_states();
 
-        let items = feed_states.get_new_feed(&Feed::Netcup, Vec::new());
+        let items = feed_states.get_new_feed(Feed::Netcup, Vec::new());
         assert!(items.is_empty());
     }
 
@@ -291,7 +327,7 @@ mod tests_feed_states {
             create_rss_item(get_current_utc_time()),
             create_rss_item(highest_time),
         ];
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert_eq!(items, filtered_items);
         assert_eq!(feed_states.feeds[&feed].last_update, Some(highest_time));
@@ -311,7 +347,7 @@ mod tests_feed_states {
             items.push(create_rss_item(time));
         }
 
-        let filtered_items = feed_states.get_new_feed(&feed, items);
+        let filtered_items = feed_states.get_new_feed(feed, items);
 
         assert!(filtered_items.is_empty());
         assert!(!feed_states.is_dirty());
@@ -334,7 +370,7 @@ mod tests_feed_states {
             items.push(create_rss_item(time));
         }
 
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(feed_states.is_dirty());
         assert_eq!(filtered_items.len(), items.len());
@@ -351,7 +387,7 @@ mod tests_feed_states {
         let time = feed_states.feeds[&feed].last_update.unwrap();
         let items = vec![create_rss_item(time), create_rss_item(time)];
 
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(!feed_states.is_dirty());
         assert!(filtered_items.is_empty());
@@ -377,7 +413,7 @@ mod tests_feed_states {
         let mut items = before.clone();
         items.append(&mut after.clone());
 
-        let filtered_items = feed_states.get_new_feed(&feed, items.clone());
+        let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(feed_states.is_dirty());
         assert_eq!(filtered_items.len(), after.len());

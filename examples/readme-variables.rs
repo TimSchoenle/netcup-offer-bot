@@ -1,4 +1,4 @@
-//! Emit the half of the README payload that only this crate can answer.
+//! Emits the half of the README payload that only this crate can answer.
 //!
 //! `README.md` and `docs/CONFIGURATION.md` are generated. The template holds the prose, this
 //! holds the configuration facts derived from `Config`, and
@@ -69,7 +69,7 @@ fn main() -> ExitCode {
     }
 }
 
-/// Build the payload.
+/// Builds the payload.
 ///
 /// # Errors
 /// Returns an error if the schema cannot be built or the payload cannot be encoded. Neither

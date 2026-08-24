@@ -106,6 +106,41 @@ jobs:
         uses: TimSchoenle/actions/actions/rust/clippy@dcfb46a6a17ad8565db74057ce60278953056ad5 # tag=actions-rust-clippy-v1.1.9
 
 
+  # rustdoc, with warnings fatal. `cargo check` never runs the rustdoc lints, so a broken
+  # intra-doc link or an unescaped backtick reaches the rendered page and nobody else's job
+  # notices. `missing_docs` is in the lint table and fails `check` on its own.
+  doc:
+    name: Doc
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required to checkout the code
+    env:
+      RUSTDOCFLAGS: '-D warnings'
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+
+      # Both feature sets. The contract section of the `config` module documentation renders only
+      # under `config-schema`, and it links an item that does not exist without it, so each set
+      # has a link the other cannot break.
+      - name: Document
+        run: |
+          cargo doc --all-features --no-deps
+          cargo doc --no-deps
+
+      - name: Doctests
+        run: cargo test --doc --all-features
+
   # The reverse gate on the config contract: regenerate the committed document and the
   # Dockerfile's `LABEL` block from the Rust types and fail if either has drifted. A renamed key
   # or a renamed prefix then shows up in the pull request that renamed it, as a diff a reviewer
