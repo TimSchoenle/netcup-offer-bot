@@ -19,12 +19,15 @@
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
-use netcup_offer_bot::config::{self, Config};
+use netcup_offer_bot::config::{self, Config, SentryLevel};
 use secrecy::ExposeSecret;
 use terrace_config::testing::Harness;
 use tracing::Level;
 
 const WEB_HOOK: &str = "https://discord.com/api/webhooks/";
+/// Spelled the way Sentry spells one, so a test that stops asserting the value still fails if the
+/// key stops being read as a DSN.
+const DSN: &str = "https://key@sentry.example/42";
 
 /// The keys, as the loader spells them. Every layer derives its own spelling from these, so a
 /// test names a key once and the harness decides whether that means a variable or a file.
@@ -52,7 +55,14 @@ fn env_supplies_required_keys_and_defaults_fill_the_rest() {
             "127.0.0.1:9184".parse::<SocketAddr>().unwrap()
         );
         assert_eq!(config.telemetry.log_level, Level::INFO);
-        assert!(config.telemetry.sentry_dsn.is_none());
+        // A deployment that says nothing about Sentry gets no client and no egress. The block is
+        // `#[serde(default)]` twice over — once on the field, once on the struct — so a missing
+        // section has to materialise rather than fail the boot of a deployment that has never
+        // heard of it.
+        assert!(!config.telemetry.sentry.enabled);
+        assert!(config.telemetry.sentry.dsn.is_none());
+        assert_eq!(config.telemetry.sentry.capture_level, SentryLevel::Error);
+        assert_eq!(config.telemetry.sentry.breadcrumb_level, SentryLevel::Info);
         Ok(())
     });
 }
@@ -66,7 +76,10 @@ fn env_overrides_every_default() {
         jail.env_key("metrics.ip", "0.0.0.0");
         jail.env_key("metrics.port", 9999);
         jail.env_key("telemetry.log_level", "debug");
-        jail.env_key("telemetry.sentry_dsn", "https://sentry/1");
+        jail.env_key("telemetry.sentry.enabled", true);
+        jail.env_key("telemetry.sentry.dsn", DSN);
+        jail.env_key("telemetry.sentry.traces_sample_rate", "0.25");
+        jail.env_key("telemetry.sentry.capture_level", "warn");
 
         let config: Config = jail.load()?;
         assert_eq!(
@@ -74,10 +87,98 @@ fn env_overrides_every_default() {
             "0.0.0.0:9999".parse::<SocketAddr>().unwrap()
         );
         assert_eq!(config.telemetry.log_level, Level::DEBUG);
+
+        let sentry = &config.telemetry.sentry;
+        assert!(sentry.enabled);
+        assert_eq!(sentry.dsn.as_ref().unwrap().expose_secret(), DSN);
+        assert!((sentry.traces_sample_rate - 0.25).abs() < f32::EPSILON);
+        assert_eq!(sentry.capture_level, SentryLevel::Warn);
+        Ok(())
+    });
+}
+
+/// The DSN as the chart supplies it: a mounted `Secret`, one file per key.
+///
+/// The Sentry keys are two levels deep, which is one level deeper than every other block here,
+/// so this is the assertion that the `__` spelling reaches all the way down — and that a
+/// credential can arrive as a file rather than as a variable `docker inspect` prints.
+#[test]
+fn a_mounted_secret_supplies_the_sentry_dsn() {
+    harness().run(|jail| {
+        jail.env_key(WEBHOOK_KEY, WEB_HOOK);
+        jail.env_key(CHECK_INTERVAL_KEY, 42);
+        jail.env_key("telemetry.sentry.enabled", true);
+        jail.secret_key("telemetry.sentry.dsn", DSN)?;
+
+        let config: Config = jail.load()?;
+        assert!(config.telemetry.sentry.enabled);
         assert_eq!(
-            config.telemetry.sentry_dsn.unwrap().expose_secret(),
-            "https://sentry/1"
+            config
+                .telemetry
+                .sentry
+                .dsn
+                .as_ref()
+                .unwrap()
+                .expose_secret(),
+            DSN
         );
+        Ok(())
+    });
+}
+
+/// The key `telemetry.sentry.dsn` replaced, refused rather than ignored.
+///
+/// Silently ignoring it is what would take a deployment's error reporting away in the upgrade
+/// that renamed the key: the variable stops being read, `telemetry.sentry.enabled` defaults to
+/// `false`, and nothing anywhere says so. The message has to name the replacement, because the
+/// operator reading it is holding the old spelling.
+#[test]
+fn the_removed_sentry_dsn_key_fails_the_load() {
+    harness().run(|jail| {
+        jail.env_key(WEBHOOK_KEY, WEB_HOOK);
+        jail.env_key(CHECK_INTERVAL_KEY, 42);
+        jail.env_key("telemetry.sentry_dsn", DSN);
+
+        let error = jail
+            .load::<Config>()
+            .expect_err("`telemetry.sentry_dsn` no longer exists");
+        let message = error.to_string();
+        assert!(
+            message.contains("telemetry.sentry.dsn"),
+            "must name the replacement: {message}"
+        );
+        assert!(
+            message.contains("telemetry.sentry.enabled"),
+            "must say that a DSN alone no longer switches Sentry on: {message}"
+        );
+        Ok(())
+    });
+}
+
+/// A rate the loader cannot parse fails the boot rather than falling back to the default, which
+/// would be a deployment that thinks it is tracing and is not.
+#[test]
+fn an_unparsable_traces_sample_rate_fails_the_load() {
+    harness().run(|jail| {
+        jail.env_key(WEBHOOK_KEY, WEB_HOOK);
+        jail.env_key(CHECK_INTERVAL_KEY, 42);
+        jail.env_key("telemetry.sentry.traces_sample_rate", "a fifth");
+
+        assert!(jail.load::<Config>().is_err());
+        Ok(())
+    });
+}
+
+/// `off`, `error`, `warn`, `info`, `debug`, `trace` — and nothing else. The error has to name the
+/// set, for the reason the log level's does.
+#[test]
+fn an_unknown_capture_level_fails_the_load() {
+    harness().run(|jail| {
+        jail.env_key(WEBHOOK_KEY, WEB_HOOK);
+        jail.env_key(CHECK_INTERVAL_KEY, 42);
+        jail.env_key("telemetry.sentry.capture_level", "fatal");
+
+        assert!(jail.load::<Config>().is_err());
         Ok(())
     });
 }

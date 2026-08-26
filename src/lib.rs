@@ -54,6 +54,7 @@ mod error;
 pub mod feed;
 mod feed_state;
 mod metrics;
+pub mod telemetry;
 
 /// The outcome of anything in this crate that can fail.
 pub type Result<T> = std::result::Result<T, Error>;

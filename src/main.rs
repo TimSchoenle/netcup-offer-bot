@@ -19,27 +19,22 @@ extern crate tracing;
 use netcup_offer_bot::FeedChecker;
 use netcup_offer_bot::Result;
 use netcup_offer_bot::config::{self, Config};
-use secrecy::{ExposeSecret, SecretString};
-use sentry::ClientInitGuard;
+use netcup_offer_bot::telemetry;
 use std::net::SocketAddr;
 use tokio::time;
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::IntervalStream;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::{Layer, filter};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let config = Config::load()?;
 
-    setup_tracing(config.telemetry.log_level);
+    // Bound for the whole of `main`: the guard flushes queued Sentry events when it drops, and a
+    // `_` binding would drop it at the end of this statement — before the process has done
+    // anything worth reporting.
+    let _telemetry = telemetry::init(&config.telemetry)?;
 
     log_configuration_layers(config.telemetry.log_level);
-
-    // Bound for the whole of `main`: the guard flushes queued events when it drops, and a `_`
-    // binding would drop it at the end of this statement.
-    let _sentry = setup_sentry(config.telemetry.sentry_dsn.as_ref());
 
     setup_metrics(&config.metrics.socket())?;
 
@@ -51,18 +46,6 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-/// Installs the subscriber: stdout at `level`, Sentry at `DEBUG` and above.
-///
-/// The two filters are independent on purpose. Sentry's layer keeps collecting `DEBUG` events as
-/// breadcrumbs however quiet stdout is, so an issue raised from an `ERROR` still arrives with the
-/// round that led to it attached.
-fn setup_tracing(level: tracing::Level) {
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().with_filter(filter::LevelFilter::from_level(level)))
-        .with(sentry::integrations::tracing::layer().with_filter(filter::LevelFilter::DEBUG))
-        .init();
 }
 
 /// Reports which layer supplied each configuration key.
@@ -84,27 +67,6 @@ fn log_configuration_layers(level: tracing::Level) {
         Ok(layers) => debug!("Configuration layers:\n{}", layers),
         Err(e) => warn!("Could not explain the configuration layers: {}", e),
     }
-}
-
-/// Initialises Sentry, or returns `None` when no DSN is configured.
-///
-/// The guard has to outlive everything worth reporting: dropping it flushes what is queued, and
-/// that is the only flush this process performs. One transaction in five is sampled, and the
-/// release is whatever `sentry::release_name!` reads out of the build.
-fn setup_sentry(dsn: Option<&SecretString>) -> Option<ClientInitGuard> {
-    let Some(dsn) = dsn else {
-        info!("telemetry.sentry_dsn not set, skipping Sentry setup");
-        return None;
-    };
-
-    let mut options = sentry::ClientOptions::new()
-        .traces_sample_rate(0.2)
-        .attach_stacktrace(true);
-    if let Some(release) = sentry::release_name!() {
-        options = options.release(release);
-    }
-
-    Some(sentry::init((dsn.expose_secret(), options)))
 }
 
 /// Starts the Prometheus exporter on `socket`.

@@ -73,10 +73,62 @@ check_interval_secs = 0
 # Type: Level
 # log_level = "INFO"
 
-# Sentry DSN. Unset disables Sentry entirely.
+[telemetry.sentry]
+# Initialise the Sentry client. `false` installs no client, no panic hook and no layer, so every other key here is inert and nothing leaves the process.
+# Type: bool
+# enabled = false
+
+# Ingest URL, `https://<key>@<host>/<project>`. Required once `enabled` is set.
 # Type: SecretString
 # Secret: the value below is a placeholder.
-# sentry_dsn = "<secret>"
+# dsn = "<secret>"
+
+# Environment tag on every event. Defaults to `production`, or `development` for a debug build.
+# Type: String
+# Unset by default: the value below is only the shape.
+# environment = "<value>"
+
+# Release tag on every event. Defaults to the version the binary was built from.
+# Type: String
+# Unset by default: the value below is only the shape.
+# release = "<value>"
+
+# Host tag on every event. Unset, Sentry reports none.
+# Type: String
+# Unset by default: the value below is only the shape.
+# server_name = "<value>"
+
+# Fraction of captured events actually sent, `0.0`–`1.0`.
+# Type: f32
+# sample_rate = 1.0
+
+# Fraction of traces that are recorded, `0.0`–`1.0`. `0.0` records none.
+# Type: f32
+# traces_sample_rate = 0.0
+
+# Least severe `tracing` level reported as a Sentry issue: `off`, `error`, `warn`, `info`, `debug` or `trace`.
+# Type: SentryLevel — one of: off, error, warn, info, debug, trace
+# capture_level = "error"
+
+# Least severe `tracing` level kept as a breadcrumb — the trail attached to the next issue.
+# Type: SentryLevel — one of: off, error, warn, info, debug, trace
+# breadcrumb_level = "info"
+
+# How many breadcrumbs one event carries.
+# Type: usize
+# max_breadcrumbs = 100
+
+# Attach a stack trace to events that carry none of their own.
+# Type: bool
+# attach_stacktraces = true
+
+# How long process exit waits for queued events to drain.
+# Type: u64
+# shutdown_timeout_secs = 2
+
+# Print the SDK's own diagnostics to stderr. For proving a DSN works, not for running.
+# Type: bool
+# debug = false
 ```
 
 ## Secrets from files
@@ -98,6 +150,55 @@ For a single secret, Docker's own convention reaches the same place:
 ```bash
 -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE="/run/secrets/webhook"
 ```
+
+## `telemetry.sentry`
+
+Off unless a deployment switches it on, and the whole block is inert until it does. A DSN is an
+egress destination for whatever a log line happens to carry, so turning it on is a decision made
+once per deployment rather than one this image makes by shipping a key.
+
+```bash
+docker run --rm \
+  -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE="/run/secrets/webhook" \
+  -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS=900 \
+  -e NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENABLED=true \
+  -e NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DSN_FILE="/run/secrets/sentry-dsn" \
+  -e NETCUP_OFFER_BOT_TELEMETRY__SENTRY__TRACES_SAMPLE_RATE=0.1 \
+  -v netcup-offer-bot-data:/app/data \
+  timmi6790/netcup-offer-bot:v2.1.1
+```
+
+Four things about it are worth knowing before it is switched on:
+
+- **`ENABLED=true` without a usable DSN fails the boot.** So does a DSN that does not parse, and
+  so does a sample rate outside `0.0`–`1.0`. A reporter that reports nowhere is the one failure
+  nobody sees: the process boots, serves, and a quiet issue stream looks exactly like a quiet
+  week. An empty value counts as no DSN, because an unfilled chart value and a compose
+  pass-through both resolve to one.
+- **The DSN is a credential** for the project's ingest endpoint, and takes the same three
+  spellings the webhook does. Mount it.
+- **Tracing is a second switch.** `traces_sample_rate` is `0.0` by default, and at `0.0` no spans
+  are built at all — errors are still reported. `0.05`–`0.2` is an ordinary production figure.
+- **The Sentry thresholds do not follow `telemetry.log_level`.** `capture_level` decides what
+  becomes an issue and `breadcrumb_level` what is kept as the trail attached to the next one, and
+  the layer goes on collecting that trail however quiet stdout has been told to be. Setting
+  `log_level = "ERROR"` does not empty the breadcrumbs on an issue.
+
+### The key this replaced
+
+`NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN` is gone. Supplying it fails the boot
+naming `telemetry.sentry.dsn`, rather than being ignored: a rename that resolved silently would
+take a deployment's error reporting away in the upgrade that renamed the key, and a DSN alone no
+longer switches Sentry on — `telemetry.sentry.enabled` does.
+
+### Builds without Sentry
+
+The client, the panic hook and the `tracing` layer are behind the crate's default `sentry`
+feature. `cargo build --release --no-default-features` produces a binary with no Sentry code in
+it and no egress path to a third party; the keys above are still read, documented and published
+in the contract, so one document describes every build. Such a binary refuses to boot on
+`telemetry.sentry.enabled` instead of starting a reporter it has no client for. The published
+image is built with default features and reports.
 
 ## The config contract
 

@@ -28,6 +28,15 @@ pub enum Error {
     Prometheus(#[from] prometheus::Error),
     #[error("Prometheus exporter error")]
     PrometheusExport(#[from] prometheus_exporter::Error),
+    /// `telemetry.sentry` is switched on and unusable: no DSN, a DSN that does not parse, a rate
+    /// outside `0.0..=1.0`, or a binary built without the `sentry` feature. A boot failure rather
+    /// than a warning, because the alternative is a process nobody knows has stopped reporting.
+    #[error("Sentry error: {0}")]
+    Sentry(String),
+    /// A `tracing` subscriber was already installed. Only reachable from a second boot inside one
+    /// process, which is a test harness rather than a deployment.
+    #[error("Tracing error: {0}")]
+    Tracing(String),
     /// An unsuccessful HTTP status, or retries running out.
     #[error("Custom: {0}")]
     Custom(String),
