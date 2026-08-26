@@ -142,7 +142,7 @@ docker run --rm \
   -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS=900 \
   -v ./webhook:/run/secrets/discord__webhook_url:ro \
   -v netcup-offer-bot-data:/app/data \
-  timmi6790/netcup-offer-bot:v2.1.1
+  timmi6790/netcup-offer-bot:v3.0.0
 ```
 
 For a single secret, Docker's own convention reaches the same place:
@@ -165,7 +165,7 @@ docker run --rm \
   -e NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DSN_FILE="/run/secrets/sentry-dsn" \
   -e NETCUP_OFFER_BOT_TELEMETRY__SENTRY__TRACES_SAMPLE_RATE=0.1 \
   -v netcup-offer-bot-data:/app/data \
-  timmi6790/netcup-offer-bot:v2.1.1
+  timmi6790/netcup-offer-bot:v3.0.0
 ```
 
 Four things about it are worth knowing before it is switched on:
