@@ -22,12 +22,24 @@ path = "src/lib.rs"
 path = "src/main.rs"
 name = "netcup-offer-bot"
 
-# The two generators, and nothing else. `terrace-config/schema` links `serde_json` and compiles
-# a derive macro over every config struct, which is weight an image that will never print a table
-# has no reason to carry — so the container's runtime stage builds with default features, and the
-# feature is turned on only by the documentation job and by the builder stage that writes the
-# config contract.
+# `sentry` is default and `config-schema` is not, for opposite reasons.
+#
+# `terrace-config/schema` links `serde_json` and compiles a derive macro over every config
+# struct, which is weight an image that will never print a table has no reason to carry — so the
+# container's runtime stage builds with default features, and the feature is turned on only by
+# the documentation job and by the builder stage that writes the config contract.
+#
+# `sentry` is the client, the panic hook and the `tracing` layer that the `telemetry.sentry`
+# block configures. It is default because the published image reports, and a release that
+# quietly stopped doing so would be noticed by the absence of issues rather than by a failure.
+# `--no-default-features` links no Sentry code at all — for a build that must carry no egress
+# path to a third party — and the *configuration surface does not move with it*: the keys are
+# described, documented and published in the contract either way, so one document describes
+# every build of this crate. What such a build does instead is refuse to boot on
+# `telemetry.sentry.enabled` rather than start a reporter that reports nowhere.
 [features]
+default = ["sentry"]
+sentry = ["dep:sentry"]
 config-schema = ["terrace-config/schema-cli"]
 
 # Declared so `cargo clippy --all-targets --features config-schema` keeps the generators
@@ -44,7 +56,13 @@ required-features = ["config-schema"]
 anyhow = { version = "1.0.100", features = ["backtrace"] }
 thiserror = "2.0.18"
 backtrace = "0.3.76"
-sentry = { version = "0.49.1", default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
+# Optional, behind the `sentry` feature above; the feature list is unchanged from when this was
+# a hard dependency. `default-features = false` keeps the transport on the `reqwest`/`rustls`
+# stack this crate already links rather than pulling in a second HTTP client and a second TLS
+# implementation. `tracing` is the layer `src/telemetry/sentry.rs` installs, and `backtrace` and
+# `debug-images` are what let a stripped musl release build symbolicate against the debug files
+# the image build uploads — see the `[profile.release]` note on `debug = "limited"` below.
+sentry = { version = "0.49.1", optional = true, default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
 chrono = { version = "0.4.43", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 rss = { version = "2.0.12", features = ["validation"] }
 reqwest = { version = "0.13.1", default-features = false, features = ["json", "rustls", "stream", "gzip"] }

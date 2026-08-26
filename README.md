@@ -81,8 +81,11 @@ every restart reposts whatever the feed still lists.
   as a fetch error, because the upstream answers with an HTML page often enough that alerting on
   it would be alerting on netcup's bad minute.
 - Four Prometheus metrics, on an exporter that binds `127.0.0.1:9184` by default.
-- Errors reach Sentry when a DSN is configured. The image build uploads debug symbols before it
-  strips the binary, so a musl release build still symbolicates.
+- Errors reach Sentry when `telemetry.sentry.enabled` is set, with performance tracing under
+  `telemetry.sentry.traces_sample_rate` and the issue and breadcrumb thresholds as keys of their
+  own. Switched on without a usable DSN it fails the boot rather than running as a reporter that
+  reports nowhere. The image build uploads debug symbols before it strips the binary, so a musl
+  release build still symbolicates.
 
 ## Installation
 
@@ -114,6 +117,11 @@ git clone https://github.com/TimSchoenle/netcup-offer-bot.git
 cd netcup-offer-bot
 cargo build --release
 ```
+
+`--no-default-features` drops the `sentry` feature, and with it the client, the panic hook and
+the `tracing` layer — a binary with no error-reporting path out of the process at all. It reads
+the same `telemetry.sentry` keys and refuses to boot on `telemetry.sentry.enabled`, rather than
+starting as a reporter it has no client for.
 
 ## Usage
 
@@ -168,7 +176,19 @@ Nesting is `__`, because a single underscore is part of a field name. Case is fo
 | `metrics.ip` | `IpAddr` | `NETCUP_OFFER_BOT_METRICS__IP` | `127.0.0.1` | — | Address the Prometheus exporter binds. `0.0.0.0` to reach it from outside the container. |
 | `metrics.port` | `u16` | `NETCUP_OFFER_BOT_METRICS__PORT` | `9184` | — | Port the Prometheus exporter listens on. |
 | `telemetry.log_level` | `Level` | `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL` | `INFO` | — | The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`, in any case. |
-| `telemetry.sentry_dsn` | `SecretString` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN` | unset | secret | Sentry DSN. Unset disables Sentry entirely. |
+| `telemetry.sentry.enabled` | `bool` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENABLED` | `false` | — | Initialise the Sentry client. `false` installs no client, no panic hook and no layer, so every other key here is inert and nothing leaves the process. |
+| `telemetry.sentry.dsn` | `SecretString` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DSN` | unset | secret | Ingest URL, `https://<key>@<host>/<project>`. Required once `enabled` is set. |
+| `telemetry.sentry.environment` | `String` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENVIRONMENT` | unset | — | Environment tag on every event. Defaults to `production`, or `development` for a debug build. |
+| `telemetry.sentry.release` | `String` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__RELEASE` | unset | — | Release tag on every event. Defaults to the version the binary was built from. |
+| `telemetry.sentry.server_name` | `String` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SERVER_NAME` | unset | — | Host tag on every event. Unset, Sentry reports none. |
+| `telemetry.sentry.sample_rate` | `f32` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SAMPLE_RATE` | `1` | — | Fraction of captured events actually sent, `0.0`–`1.0`. |
+| `telemetry.sentry.traces_sample_rate` | `f32` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__TRACES_SAMPLE_RATE` | `0` | — | Fraction of traces that are recorded, `0.0`–`1.0`. `0.0` records none. |
+| `telemetry.sentry.capture_level` | `SentryLevel`: `off` \| `error` \| `warn` \| `info` \| `debug` \| `trace` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__CAPTURE_LEVEL` | `error` | — | Least severe `tracing` level reported as a Sentry issue: `off`, `error`, `warn`, `info`, `debug` or `trace`. |
+| `telemetry.sentry.breadcrumb_level` | `SentryLevel`: `off` \| `error` \| `warn` \| `info` \| `debug` \| `trace` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__BREADCRUMB_LEVEL` | `info` | — | Least severe `tracing` level kept as a breadcrumb — the trail attached to the next issue. |
+| `telemetry.sentry.max_breadcrumbs` | `usize` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__MAX_BREADCRUMBS` | `100` | — | How many breadcrumbs one event carries. |
+| `telemetry.sentry.attach_stacktraces` | `bool` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ATTACH_STACKTRACES` | `true` | — | Attach a stack trace to events that carry none of their own. |
+| `telemetry.sentry.shutdown_timeout_secs` | `u64` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SHUTDOWN_TIMEOUT_SECS` | `2` | — | How long process exit waits for queued events to drain. |
+| `telemetry.sentry.debug` | `bool` | `NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DEBUG` | `false` | — | Print the SDK's own diagnostics to stderr. For proving a DSN works, not for running. |
 
 Run with `NETCUP_OFFER_BOT_TELEMETRY__LOG_LEVEL=DEBUG` and the boot log names the layer every
 key was read from. That is what answers "the `Secret` is mounted and the bot is still posting to
@@ -192,6 +212,19 @@ container.
 | `feed_fetch_duration_seconds` | histogram | `feed` | Seconds one fetch of the feed took |
 | `feed_fetch_errors_total` | counter | `feed` | Fetches that failed, malformed payloads excluded |
 | `webhook_errors_total` | counter | `feed` | Items still undelivered after the fifth attempt |
+
+### Error reporting and tracing
+
+Off unless `telemetry.sentry.enabled` is set. On, the process reports issues at
+`telemetry.sentry.capture_level`, attaches the records above `telemetry.sentry.breadcrumb_level`
+as the trail behind each one, and records the fraction of traces
+`telemetry.sentry.traces_sample_rate` names — `0.0`, none, by default. Both thresholds are
+independent of `telemetry.log_level`, so an issue raised from an `ERROR` still arrives with the
+round that led to it attached however quiet stdout is.
+
+Switched on without a usable DSN, an unparseable DSN or a rate outside `0.0`–`1.0` fails the
+boot. [docs/CONFIGURATION.md](docs/CONFIGURATION.md#telemetrysentry) has the rest, including the
+key this replaced and what a `--no-default-features` build does instead.
 
 ### State
 

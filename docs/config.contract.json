@@ -150,11 +150,38 @@
         "reserved": false
       },
       {
-        "path": "telemetry.sentry_dsn",
-        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN",
-        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY_DSN_FILE",
-        "secrets_file": "telemetry__sentry_dsn",
-        "docs": "Sentry DSN. Unset disables Sentry entirely.\n\nA write credential for the project's event stream, wrapped for the reason\n[`DiscordConfig::webhook_url`] is.",
+        "path": "telemetry.sentry.enabled",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENABLED",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENABLED_FILE",
+        "secrets_file": "telemetry__sentry__enabled",
+        "docs": "Initialise the Sentry client. `false` installs no client, no panic hook and no layer, so\nevery other key here is inert and nothing leaves the process.\n\nSet on a binary built with `--no-default-features` it fails the boot: that build carries\nno client to install, and starting anyway would be the silent no-op this key exists to\navoid.",
+        "ty": "bool",
+        "values": [],
+        "constraint": {
+          "type": "boolean"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*(true|false)\\s*$",
+          "type": "string"
+        },
+        "text_form": "boolean",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "false",
+        "default_value": false,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.dsn",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DSN",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DSN_FILE",
+        "secrets_file": "telemetry__sentry__dsn",
+        "docs": "Ingest URL, `https://<key>@<host>/<project>`. Required once `enabled` is set.\n\nA write credential for the project's event stream, wrapped for the reason\n[`DiscordConfig::webhook_url`](super::DiscordConfig::webhook_url) is. Empty is treated as\nabsent rather than as a malformed URL, because an unfilled chart value and a compose\npass-through both produce an empty string and neither is a typo in a DSN.",
         "ty": "SecretString",
         "values": [],
         "constraint": {
@@ -170,6 +197,315 @@
         "note": null,
         "required": false,
         "secret": true,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.environment",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENVIRONMENT",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ENVIRONMENT_FILE",
+        "secrets_file": "telemetry__sentry__environment",
+        "docs": "Environment tag on every event. Defaults to `production`, or `development` for a debug\nbuild.\n\nAlways sent, never left for the SDK to fill in. `sentry::init` otherwise reads\n`SENTRY_ENVIRONMENT` from the process environment — a second configuration channel that\nbypasses the layered loader, its shadow-key rejection and the contract, whose external\nsurface says this image reads nothing outside the loader's namespace.",
+        "ty": "String",
+        "values": [],
+        "constraint": {
+          "type": "string"
+        },
+        "text_form": "text",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": null,
+        "default_value": null,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.release",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__RELEASE",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__RELEASE_FILE",
+        "secrets_file": "telemetry__sentry__release",
+        "docs": "Release tag on every event. Defaults to the version the binary was built from.\n\nSet explicitly for the same reason [`Self::environment`] is, and this is the field that\nmakes a regression attributable to a deploy. The default is what\n`sentry::release_name!` reads out of the build, which is what the image's debug-file\nupload names the symbols under.",
+        "ty": "String",
+        "values": [],
+        "constraint": {
+          "type": "string"
+        },
+        "text_form": "text",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": null,
+        "default_value": null,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.server_name",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SERVER_NAME",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SERVER_NAME_FILE",
+        "secrets_file": "telemetry__sentry__server_name",
+        "docs": "Host tag on every event. Unset, Sentry reports none.\n\nThe hostname of a replica is infrastructure detail, and a pod's is a generated string\nthat changes on every restart, so it is worth a tag only where a deployment has a\nstable name to give it.",
+        "ty": "String",
+        "values": [],
+        "constraint": {
+          "type": "string"
+        },
+        "text_form": "text",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": null,
+        "default_value": null,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.sample_rate",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SAMPLE_RATE",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SAMPLE_RATE_FILE",
+        "secrets_file": "telemetry__sentry__sample_rate",
+        "docs": "Fraction of captured events actually sent, `0.0`–`1.0`.\n\nA blunt volume cap: it drops whole issues rather than repetitions of one, so leave it at\n`1.0` unless a quota forces otherwise.",
+        "ty": "f32",
+        "values": [],
+        "constraint": {
+          "type": "number"
+        },
+        "text_form": "unknown",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "1",
+        "default_value": 1.0,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.traces_sample_rate",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__TRACES_SAMPLE_RATE",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__TRACES_SAMPLE_RATE_FILE",
+        "secrets_file": "telemetry__sentry__traces_sample_rate",
+        "docs": "Fraction of traces that are recorded, `0.0`–`1.0`. `0.0` records none.\n\nThis process starts every trace it has — nothing hands it one — so at `0.0` no spans are\nbuilt at all rather than built and dropped by the sampler. `0.05`–`0.2` is an ordinary\nproduction figure; the previous hard-coded value was `0.2`.",
+        "ty": "f32",
+        "values": [],
+        "constraint": {
+          "type": "number"
+        },
+        "text_form": "unknown",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "0",
+        "default_value": 0.0,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.capture_level",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__CAPTURE_LEVEL",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__CAPTURE_LEVEL_FILE",
+        "secrets_file": "telemetry__sentry__capture_level",
+        "docs": "Least severe `tracing` level reported as a Sentry issue: `off`, `error`, `warn`, `info`,\n`debug` or `trace`.",
+        "ty": "SentryLevel",
+        "values": [
+          "off",
+          "error",
+          "warn",
+          "info",
+          "debug",
+          "trace"
+        ],
+        "constraint": {
+          "enum": [
+            "off",
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "type": "string"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*(off|error|warn|info|debug|trace)\\s*$",
+          "type": "string"
+        },
+        "text_form": "choice",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "error",
+        "default_value": "error",
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.breadcrumb_level",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__BREADCRUMB_LEVEL",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__BREADCRUMB_LEVEL_FILE",
+        "secrets_file": "telemetry__sentry__breadcrumb_level",
+        "docs": "Least severe `tracing` level kept as a breadcrumb — the trail attached to the next issue.\n\nRecords at or above [`Self::capture_level`] become issues instead. Independent of\n[`log_level`](super::TelemetryConfig::log_level) on purpose: the layer keeps collecting\nthe trail however quiet stdout is, so an issue raised from an `ERROR` still arrives with\nthe round that led to it attached.",
+        "ty": "SentryLevel",
+        "values": [
+          "off",
+          "error",
+          "warn",
+          "info",
+          "debug",
+          "trace"
+        ],
+        "constraint": {
+          "enum": [
+            "off",
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "type": "string"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*(off|error|warn|info|debug|trace)\\s*$",
+          "type": "string"
+        },
+        "text_form": "choice",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "info",
+        "default_value": "info",
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.max_breadcrumbs",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__MAX_BREADCRUMBS",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__MAX_BREADCRUMBS_FILE",
+        "secrets_file": "telemetry__sentry__max_breadcrumbs",
+        "docs": "How many breadcrumbs one event carries.",
+        "ty": "usize",
+        "values": [],
+        "constraint": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*\\+?[0-9]+\\s*$",
+          "type": "string"
+        },
+        "text_form": "integer",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "100",
+        "default_value": 100,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.attach_stacktraces",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ATTACH_STACKTRACES",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__ATTACH_STACKTRACES_FILE",
+        "secrets_file": "telemetry__sentry__attach_stacktraces",
+        "docs": "Attach a stack trace to events that carry none of their own.",
+        "ty": "bool",
+        "values": [],
+        "constraint": {
+          "type": "boolean"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*(true|false)\\s*$",
+          "type": "string"
+        },
+        "text_form": "boolean",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "true",
+        "default_value": true,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.shutdown_timeout_secs",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SHUTDOWN_TIMEOUT_SECS",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__SHUTDOWN_TIMEOUT_SECS_FILE",
+        "secrets_file": "telemetry__sentry__shutdown_timeout_secs",
+        "docs": "How long process exit waits for queued events to drain.\n\nThe only flush this process performs, and it happens when the guard `main` holds is\ndropped. A container stopped with a short grace period loses whatever is still queued\npast this window.",
+        "ty": "u64",
+        "values": [],
+        "constraint": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*\\+?[0-9]+\\s*$",
+          "type": "string"
+        },
+        "text_form": "integer",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "2",
+        "default_value": 2,
+        "note": null,
+        "required": false,
+        "secret": false,
+        "reserved": false
+      },
+      {
+        "path": "telemetry.sentry.debug",
+        "env": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DEBUG",
+        "env_file": "NETCUP_OFFER_BOT_TELEMETRY__SENTRY__DEBUG_FILE",
+        "secrets_file": "telemetry__sentry__debug",
+        "docs": "Print the SDK's own diagnostics to stderr. For proving a DSN works, not for running.",
+        "ty": "bool",
+        "values": [],
+        "constraint": {
+          "type": "boolean"
+        },
+        "text_constraint": {
+          "pattern": "^\\s*(true|false)\\s*$",
+          "type": "string"
+        },
+        "text_form": "boolean",
+        "aliases": [],
+        "env_aliases": [],
+        "env_file_aliases": [],
+        "secrets_file_aliases": [],
+        "default": "false",
+        "default_value": false,
+        "note": null,
+        "required": false,
+        "secret": false,
         "reserved": false
       }
     ]
@@ -225,10 +561,91 @@
             "default": "INFO",
             "description": "The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`,\nin any case.\n\nParsed at boot so an unusable value fails the load rather than the first log line.\n`DEBUG` and `TRACE` additionally print which layer supplied each configuration key."
           },
-          "sentry_dsn": {
-            "description": "Sentry DSN. Unset disables Sentry entirely.\n\nA write credential for the project's event stream, wrapped for the reason\n[`DiscordConfig::webhook_url`] is.",
-            "type": "string",
-            "writeOnly": true
+          "sentry": {
+            "additionalProperties": false,
+            "properties": {
+              "attach_stacktraces": {
+                "default": true,
+                "description": "Attach a stack trace to events that carry none of their own.",
+                "type": "boolean"
+              },
+              "breadcrumb_level": {
+                "default": "info",
+                "description": "Least severe `tracing` level kept as a breadcrumb — the trail attached to the next issue.\n\nRecords at or above [`Self::capture_level`] become issues instead. Independent of\n[`log_level`](super::TelemetryConfig::log_level) on purpose: the layer keeps collecting\nthe trail however quiet stdout is, so an issue raised from an `ERROR` still arrives with\nthe round that led to it attached.",
+                "enum": [
+                  "off",
+                  "error",
+                  "warn",
+                  "info",
+                  "debug",
+                  "trace"
+                ],
+                "type": "string"
+              },
+              "capture_level": {
+                "default": "error",
+                "description": "Least severe `tracing` level reported as a Sentry issue: `off`, `error`, `warn`, `info`,\n`debug` or `trace`.",
+                "enum": [
+                  "off",
+                  "error",
+                  "warn",
+                  "info",
+                  "debug",
+                  "trace"
+                ],
+                "type": "string"
+              },
+              "debug": {
+                "default": false,
+                "description": "Print the SDK's own diagnostics to stderr. For proving a DSN works, not for running.",
+                "type": "boolean"
+              },
+              "dsn": {
+                "description": "Ingest URL, `https://<key>@<host>/<project>`. Required once `enabled` is set.\n\nA write credential for the project's event stream, wrapped for the reason\n[`DiscordConfig::webhook_url`](super::DiscordConfig::webhook_url) is. Empty is treated as\nabsent rather than as a malformed URL, because an unfilled chart value and a compose\npass-through both produce an empty string and neither is a typo in a DSN.",
+                "type": "string",
+                "writeOnly": true
+              },
+              "enabled": {
+                "default": false,
+                "description": "Initialise the Sentry client. `false` installs no client, no panic hook and no layer, so\nevery other key here is inert and nothing leaves the process.\n\nSet on a binary built with `--no-default-features` it fails the boot: that build carries\nno client to install, and starting anyway would be the silent no-op this key exists to\navoid.",
+                "type": "boolean"
+              },
+              "environment": {
+                "description": "Environment tag on every event. Defaults to `production`, or `development` for a debug\nbuild.\n\nAlways sent, never left for the SDK to fill in. `sentry::init` otherwise reads\n`SENTRY_ENVIRONMENT` from the process environment — a second configuration channel that\nbypasses the layered loader, its shadow-key rejection and the contract, whose external\nsurface says this image reads nothing outside the loader's namespace.",
+                "type": "string"
+              },
+              "max_breadcrumbs": {
+                "default": 100,
+                "description": "How many breadcrumbs one event carries.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "release": {
+                "description": "Release tag on every event. Defaults to the version the binary was built from.\n\nSet explicitly for the same reason [`Self::environment`] is, and this is the field that\nmakes a regression attributable to a deploy. The default is what\n`sentry::release_name!` reads out of the build, which is what the image's debug-file\nupload names the symbols under.",
+                "type": "string"
+              },
+              "sample_rate": {
+                "default": 1.0,
+                "description": "Fraction of captured events actually sent, `0.0`–`1.0`.\n\nA blunt volume cap: it drops whole issues rather than repetitions of one, so leave it at\n`1.0` unless a quota forces otherwise.",
+                "type": "number"
+              },
+              "server_name": {
+                "description": "Host tag on every event. Unset, Sentry reports none.\n\nThe hostname of a replica is infrastructure detail, and a pod's is a generated string\nthat changes on every restart, so it is worth a tag only where a deployment has a\nstable name to give it.",
+                "type": "string"
+              },
+              "shutdown_timeout_secs": {
+                "default": 2,
+                "description": "How long process exit waits for queued events to drain.\n\nThe only flush this process performs, and it happens when the guard `main` holds is\ndropped. A container stopped with a short grace period loses whatever is still queued\npast this window.",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "traces_sample_rate": {
+                "default": 0.0,
+                "description": "Fraction of traces that are recorded, `0.0`–`1.0`. `0.0` records none.\n\nThis process starts every trace it has — nothing hands it one — so at `0.0` no spans are\nbuilt at all rather than built and dropped by the sampler. `0.05`–`0.2` is an ordinary\nproduction figure; the previous hard-coded value was `0.2`.",
+                "type": "number"
+              }
+            },
+            "type": "object"
           }
         },
         "type": "object"

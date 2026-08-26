@@ -81,8 +81,11 @@ every restart reposts whatever the feed still lists.
   as a fetch error, because the upstream answers with an HTML page often enough that alerting on
   it would be alerting on netcup's bad minute.
 - Four Prometheus metrics, on an exporter that binds `127.0.0.1:9184` by default.
-- Errors reach Sentry when a DSN is configured. The image build uploads debug symbols before it
-  strips the binary, so a musl release build still symbolicates.
+- Errors reach Sentry when `telemetry.sentry.enabled` is set, with performance tracing under
+  `telemetry.sentry.traces_sample_rate` and the issue and breadcrumb thresholds as keys of their
+  own. Switched on without a usable DSN it fails the boot rather than running as a reporter that
+  reports nowhere. The image build uploads debug symbols before it strips the binary, so a musl
+  release build still symbolicates.
 
 ## Installation
 
@@ -114,6 +117,11 @@ git clone https://github.com/{{ repo.slug }}.git
 cd {{ repo.name }}
 cargo build --release
 ```
+
+`--no-default-features` drops the `sentry` feature, and with it the client, the panic hook and
+the `tracing` layer — a binary with no error-reporting path out of the process at all. It reads
+the same `telemetry.sentry` keys and refuses to boot on `telemetry.sentry.enabled`, rather than
+starting as a reporter it has no client for.
 
 ## Usage
 
@@ -185,6 +193,19 @@ container.
 | `feed_fetch_duration_seconds` | histogram | `feed` | Seconds one fetch of the feed took |
 | `feed_fetch_errors_total` | counter | `feed` | Fetches that failed, malformed payloads excluded |
 | `webhook_errors_total` | counter | `feed` | Items still undelivered after the fifth attempt |
+
+### Error reporting and tracing
+
+Off unless `telemetry.sentry.enabled` is set. On, the process reports issues at
+`telemetry.sentry.capture_level`, attaches the records above `telemetry.sentry.breadcrumb_level`
+as the trail behind each one, and records the fraction of traces
+`telemetry.sentry.traces_sample_rate` names — `0.0`, none, by default. Both thresholds are
+independent of `telemetry.log_level`, so an issue raised from an `ERROR` still arrives with the
+round that led to it attached however quiet stdout is.
+
+Switched on without a usable DSN, an unparseable DSN or a rate outside `0.0`–`1.0` fails the
+boot. [docs/CONFIGURATION.md](docs/CONFIGURATION.md#telemetrysentry) has the rest, including the
+key this replaced and what a `--no-default-features` build does instead.
 
 ### State
 

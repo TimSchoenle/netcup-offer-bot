@@ -92,10 +92,17 @@ verify: fmt lint test
 fmt:
     cargo fmt --all
 
+# Both feature sets, because `sentry` is default and `--all-features` therefore never builds the
+# arm that has to compile without it. `src/telemetry/sentry.rs` is written twice, and only the
+# second pass here compiles the second half — along with the tests that pin its one behaviour,
+# refusing `telemetry.sentry.enabled` on a binary with no client to install.
+
 [group('check')]
 lint:
     cargo clippy --all-features --all-targets -- -D warnings
+    cargo clippy --no-default-features --all-targets -- -D warnings
 
 [group('check')]
 test:
     cargo test --all-features
+    cargo test --no-default-features

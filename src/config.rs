@@ -42,6 +42,7 @@ that changes one without the other.
 #[cfg(feature = "config-schema")]
 pub mod contract;
 mod loader;
+mod sentry;
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
@@ -52,6 +53,7 @@ use serde::{Deserialize, Deserializer};
 use tracing::Level;
 
 pub use loader::{ConfigError, explain, terrace};
+pub use sentry::{SentryConfig, SentryLevel};
 
 const DEFAULT_METRIC_IP: IpAddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
 const DEFAULT_METRIC_PORT: u16 = 9184;
@@ -217,6 +219,10 @@ impl MetricsConfig {
     feature = "config-schema",
     derive(serde::Serialize, terrace_config::schema::Describe)
 )]
+#[allow(
+    clippy::manual_non_exhaustive,
+    reason = "`sentry_dsn` is a removed key kept to refuse it, not a marker sealing the struct"
+)]
 pub struct TelemetryConfig {
     /// The maximum verbosity that reaches stdout: `TRACE`, `DEBUG`, `INFO`, `WARN` or `ERROR`,
     /// in any case.
@@ -228,23 +234,34 @@ pub struct TelemetryConfig {
         serialize_with = "serialize_level"
     )]
     pub log_level: Level,
-    /// Sentry DSN. Unset disables Sentry entirely.
+    /// Error reporting and performance tracing. Off unless configured; see [`SentryConfig`].
     ///
-    /// A write credential for the project's event stream, wrapped for the reason
-    /// [`DiscordConfig::webhook_url`] is.
-    // Not rustdoc: skipped on the way out for the same reason as `webhook_url`. The key still
-    // reports itself as unset by default, which is all a table can usefully say about an
-    // optional secret.
-    #[serde(skip_serializing)]
-    #[cfg_attr(feature = "config-schema", config(secret))]
-    pub sentry_dsn: Option<SecretString>,
+    /// Nested here rather than beside `metrics` because it is a second sink for the same
+    /// `tracing` stream `log_level` governs, not a second exporter.
+    #[serde(default)]
+    #[cfg_attr(feature = "config-schema", config(nested))]
+    pub sentry: SentryConfig,
+    /// The key `telemetry.sentry.dsn` replaced. Supplying it fails the boot.
+    ///
+    /// A rename that resolved silently would take the deployment's error reporting away in the
+    /// upgrade that renamed the key: the old variable would be ignored, `telemetry.sentry.enabled`
+    /// would default to `false`, and the first anyone heard of it would be an incident nobody got
+    /// an issue for. This field is what turns that into a boot failure naming the replacement.
+    // Not rustdoc: `config(skip)` keeps it out of the contract, the README table and the
+    // generated `config.toml`. A key that exists only to be refused is not part of the
+    // configuration surface a chart is checked against — the error message is where it belongs,
+    // and it reaches the one person who set it.
+    #[serde(skip_serializing, deserialize_with = "refuse_removed_sentry_dsn")]
+    #[cfg_attr(feature = "config-schema", config(skip))]
+    sentry_dsn: (),
 }
 
 impl Default for TelemetryConfig {
     fn default() -> Self {
         Self {
             log_level: DEFAULT_LOG_LEVEL,
-            sentry_dsn: None,
+            sentry: SentryConfig::default(),
+            sentry_dsn: (),
         }
     }
 }
@@ -263,6 +280,29 @@ where
             "invalid log level `{raw}`, expected one of TRACE, DEBUG, INFO, WARN, ERROR"
         ))
     })
+}
+
+/// Refuses the removed `telemetry.sentry_dsn` key, naming what replaced it.
+///
+/// Reached only when some layer supplied the key: `serde` skips a `deserialize_with` hook for an
+/// absent field and takes the value from [`TelemetryConfig::default`] instead, so the cost of
+/// this on every other boot is nothing.
+///
+/// The message states both halves of the migration. A DSN alone no longer switches Sentry on —
+/// `telemetry.sentry.enabled` does — so an operator who moved only the value would land on the
+/// same silent no-op one step later.
+fn refuse_removed_sentry_dsn<'de, D>(deserializer: D) -> Result<(), D::Error>
+where
+    D: Deserializer<'de>,
+{
+    // Consumed rather than ignored: the value is a credential, and reading it into a `String`
+    // to reject it would put it in the error `serde` renders for a type mismatch.
+    serde::de::IgnoredAny::deserialize(deserializer)?;
+    Err(serde::de::Error::custom(
+        "`telemetry.sentry_dsn` was replaced by `telemetry.sentry.dsn`, and a DSN no longer \
+         switches Sentry on by itself: set `telemetry.sentry.enabled` as well, then remove \
+         `telemetry.sentry_dsn`",
+    ))
 }
 
 /// Renders a [`Level`] the way every layer spells it.

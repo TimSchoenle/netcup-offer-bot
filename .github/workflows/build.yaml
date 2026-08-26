@@ -141,6 +141,36 @@ jobs:
       - name: Doctests
         run: cargo test --doc --all-features
 
+  # The half of the crate `--all-features` never builds. `sentry` is a default feature, so every
+  # other job here compiles the arm of `src/telemetry/sentry.rs` that has a client and none of
+  # them compile the arm that does not. Without this, the build with no egress path to a third
+  # party would break in a pull request that never mentions Sentry and stay broken until someone
+  # tried to produce one.
+  no-default-features:
+    name: No Default Features
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required to checkout the code
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Install stable toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
+
+      - name: Clippy
+        run: cargo clippy --no-default-features --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --no-default-features
+
   # The reverse gate on the config contract: regenerate the committed document and the
   # Dockerfile's `LABEL` block from the Rust types and fail if either has drifted. A renamed key
   # or a renamed prefix then shows up in the pull request that renamed it, as a diff a reviewer
