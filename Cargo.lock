@@ -1135,7 +1135,6 @@ dependencies = [
 name = "netcup-offer-bot"
 version = "2.1.1"
 dependencies = [
- "anyhow",
  "backtrace",
  "chrono",
  "prometheus 0.14.0",
@@ -1894,24 +1893,12 @@ dependencies = [
  "httpdate",
  "reqwest",
  "rustls",
- "sentry-anyhow",
  "sentry-backtrace",
  "sentry-core",
  "sentry-debug-images",
  "sentry-tracing",
  "tokio",
  "ureq",
-]
-
-[[package]]
-name = "sentry-anyhow"
-version = "0.49.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6265521f1b724f709bc07747ecb01c5289b974cb70b348026df01780280fc136"
-dependencies = [
- "anyhow",
- "sentry-backtrace",
- "sentry-core",
 ]
 
 [[package]]
