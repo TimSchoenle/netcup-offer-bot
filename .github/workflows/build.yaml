@@ -197,7 +197,7 @@ jobs:
       # `image` is empty, so the two checks needing one are skipped and this job stays the
       # cheap half.
       - name: Check the committed contract and the Dockerfile LABEL region
-        uses: TimSchoenle/actions/actions/rust/config-contract@99c83581b3486a8a9f28e43226b8f02025fcdf9a # tag=actions-rust-config-contract-v1.1.0
+        uses: TimSchoenle/actions/actions/rust/config-contract@e16a1e466faf8ec751b26289c1898143a253269f # tag=actions-rust-config-contract-v1.2.0
         with:
           example: config-contract
           features: config-schema
@@ -288,7 +288,7 @@ jobs:
 
       - name: Verify the image carries the contract labels
         id: contract
-        uses: TimSchoenle/actions/actions/rust/config-contract@99c83581b3486a8a9f28e43226b8f02025fcdf9a # tag=actions-rust-config-contract-v1.1.0
+        uses: TimSchoenle/actions/actions/rust/config-contract@e16a1e466faf8ec751b26289c1898143a253269f # tag=actions-rust-config-contract-v1.2.0
         with:
           example: config-contract
           features: config-schema
