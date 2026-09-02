@@ -96,13 +96,13 @@ secrecy = { version = "0.10.3", features = ["serde"] }
 # which the container never enables.
 #
 # Pinned by tag, not branch: `cargo update` cannot then move the dependency silently.
-terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.9.1", default-features = false, features = ["loader", "explain"] }
+terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.10.0", default-features = false, features = ["loader", "explain"] }
 
 [dev-dependencies]
 # The same dependency as above with its test harness added, not a second copy: cargo unions the
 # features for test builds. `testing` derives every name it writes from the loader the harness
 # was built over, so a test cannot go on asserting a variable this crate has stopped reading.
-terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.9.1", default-features = false, features = ["testing"] }
+terrace-config = { git = "https://github.com/TimSchoenle/terrace-config", tag = "v0.10.0", default-features = false, features = ["testing"] }
 tempfile = "=3.27.0"
 serde_test = "=1.0.177"
 wiremock = "=0.6.5"
