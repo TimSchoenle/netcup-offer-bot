@@ -1,6 +1,6 @@
 [package]
 name = "netcup-offer-bot"
-version = "3.1.0"
+version = "3.1.1"
 edition = "2024"
 # Read by the README render as well as by cargo. `readme-variables` takes the repository's
 # one-line description and its licence identifier from here and refuses to take either from the
