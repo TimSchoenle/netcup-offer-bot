@@ -47,7 +47,7 @@ docker run --rm \
   -e NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL="https://discord.com/api/webhooks/..." \
   -e NETCUP_OFFER_BOT_FEED__CHECK_INTERVAL_SECS=900 \
   -v netcup-offer-bot-data:/app/data \
-  timmi6790/netcup-offer-bot:v3.1.0
+  timmi6790/netcup-offer-bot:v3.1.1
 ```
 
 Those two variables are the only required keys. The volume holds the watermark; drop it and
@@ -92,7 +92,7 @@ every restart reposts whatever the feed still lists.
 ### Docker
 
 ```bash
-docker pull timmi6790/netcup-offer-bot:v3.1.0
+docker pull timmi6790/netcup-offer-bot:v3.1.1
 ```
 
 Published as a multi-platform manifest for `linux/amd64` and `linux/arm64`. Every release is
