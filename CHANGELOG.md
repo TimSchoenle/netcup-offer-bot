@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.3](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.2...v3.3.3) (2026-09-25)
+
+
+### Miscellaneous
+
+* **deps:** update rust crate sentry to v0.49.3 ([#599](https://github.com/TimSchoenle/netcup-offer-bot/issues/599)) ([2ea311d](https://github.com/TimSchoenle/netcup-offer-bot/commit/2ea311d9897bd913a84bd08a10e9e1d1af48d287))
+
 ## [3.3.2](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.1...v3.3.2) (2026-09-22)
 
 
