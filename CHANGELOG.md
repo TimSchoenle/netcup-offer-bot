@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.3.3](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.2...v3.3.3) (2026-09-30)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate terrace-config to v0.14.0 ([#568](https://github.com/TimSchoenle/netcup-offer-bot/issues/568)) ([6c15846](https://github.com/TimSchoenle/netcup-offer-bot/commit/6c15846f240a5c85ef83b74cdb0fca5e3cc74e7b))
+
+
+### Miscellaneous
+
+* **deps:** update github/codeql-action action to v4.38.2 ([#602](https://github.com/TimSchoenle/netcup-offer-bot/issues/602)) ([9efa4bb](https://github.com/TimSchoenle/netcup-offer-bot/commit/9efa4bbe4c0fc049965d94ab77e0a8b63c6024b2))
+* **deps:** update rust crate sentry to v0.49.3 ([#599](https://github.com/TimSchoenle/netcup-offer-bot/issues/599)) ([2ea311d](https://github.com/TimSchoenle/netcup-offer-bot/commit/2ea311d9897bd913a84bd08a10e9e1d1af48d287))
+* **deps:** update rust crate thiserror to v2.0.21 ([#601](https://github.com/TimSchoenle/netcup-offer-bot/issues/601)) ([352745f](https://github.com/TimSchoenle/netcup-offer-bot/commit/352745fdca65e44804ffd1aa2e15fb3c42d10a7a))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#603](https://github.com/TimSchoenle/netcup-offer-bot/issues/603)) ([fda33ce](https://github.com/TimSchoenle/netcup-offer-bot/commit/fda33ce99f5374282f2694e75e32ca4468f9ab55))
+* **deps:** lock file maintenance ([#604](https://github.com/TimSchoenle/netcup-offer-bot/issues/604)) ([51a2e1c](https://github.com/TimSchoenle/netcup-offer-bot/commit/51a2e1c651c58d0ba738549b5905ebd22f61441d))
+* **deps:** lock file maintenance ([#605](https://github.com/TimSchoenle/netcup-offer-bot/issues/605)) ([2a95275](https://github.com/TimSchoenle/netcup-offer-bot/commit/2a95275a6652158693148450f596e691fe4681f5))
+* **deps:** lock file maintenance ([#606](https://github.com/TimSchoenle/netcup-offer-bot/issues/606)) ([ef8cdd5](https://github.com/TimSchoenle/netcup-offer-bot/commit/ef8cdd5c9538975cee8ffef5053f5d8ff8091ac9))
+* **deps:** lock file maintenance ([#607](https://github.com/TimSchoenle/netcup-offer-bot/issues/607)) ([f878e47](https://github.com/TimSchoenle/netcup-offer-bot/commit/f878e4702f41b0445d7f02254a7aabdc71500539))
+
 ## [3.3.2](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.1...v3.3.2) (2026-09-22)
 
 
