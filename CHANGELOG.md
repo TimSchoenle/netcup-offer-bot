@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.3.4](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.3...v3.3.4) (2026-10-03)
+
+
+### Miscellaneous
+
+* **deps:** update oras-project/setup-oras action to v2.0.2 ([#609](https://github.com/TimSchoenle/netcup-offer-bot/issues/609)) ([820900c](https://github.com/TimSchoenle/netcup-offer-bot/commit/820900c4dba9a1ec19a639310d2b0a14eb1abe71))
+* **deps:** update timschoenle/actions/actions/common/readme-variables to vactions-common-readme-variables-v1.2.3 ([#611](https://github.com/TimSchoenle/netcup-offer-bot/issues/611)) ([470cc34](https://github.com/TimSchoenle/netcup-offer-bot/commit/470cc345f3f1bc354ccdd33b928306a9b724b9d0))
+* **deps:** update timschoenle/actions/actions/common/render-template to vactions-common-render-template-v1.2.3 ([#612](https://github.com/TimSchoenle/netcup-offer-bot/issues/612)) ([1ca588e](https://github.com/TimSchoenle/netcup-offer-bot/commit/1ca588edb91eac4e58ca03f5de66204e3bd26d96))
+* **deps:** update timschoenle/actions/actions/common/upsert-pr-comment to vactions-common-upsert-pr-comment-v1.1.3 ([#613](https://github.com/TimSchoenle/netcup-offer-bot/issues/613)) ([80f6646](https://github.com/TimSchoenle/netcup-offer-bot/commit/80f664652ac26db2d9d97809a5c3a3071682fd30))
+* **deps:** update timschoenle/actions/actions/helm/update-chart-version to vactions-helm-update-chart-version-v1.6.13 ([#614](https://github.com/TimSchoenle/netcup-offer-bot/issues/614)) ([06a2368](https://github.com/TimSchoenle/netcup-offer-bot/commit/06a2368b801093964cf51cae888f98b5927a5b70))
+* **deps:** update timschoenle/actions/actions/rust/clippy to vactions-rust-clippy-v1.1.12 ([#615](https://github.com/TimSchoenle/netcup-offer-bot/issues/615)) ([50cdd06](https://github.com/TimSchoenle/netcup-offer-bot/commit/50cdd06f97aac54fb0a958c885ec82c71999877d))
+* **deps:** update timschoenle/actions/actions/rust/coverage-codecov to vactions-rust-coverage-codecov-v1.1.49 ([#617](https://github.com/TimSchoenle/netcup-offer-bot/issues/617)) ([68e5b36](https://github.com/TimSchoenle/netcup-offer-bot/commit/68e5b36cae540808750cdd477c3dd5fac25c0865))
+
 ## [3.3.3](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.2...v3.3.3) (2026-09-30)
 
 
