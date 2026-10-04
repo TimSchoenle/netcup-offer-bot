@@ -113,7 +113,7 @@ jobs:
       # two commits would each have to name the head the other just moved, and the API call that
       # makes a verified commit rejects one whose parent has changed.
       - name: Render the configuration page
-        uses: TimSchoenle/actions/actions/common/render-template@7e8fd61045447d321c5139eea8f2e2b766333f8b # tag=actions-common-render-template-v1.2.3
+        uses: TimSchoenle/actions/actions/common/render-template@7568f9a485ca91c369095414ce4d9f1a8237df21 # tag=actions-common-render-template-v1.2.4
         with:
           template: .github/templates/CONFIGURATION.md.hbs
           output: docs/CONFIGURATION.md
@@ -223,7 +223,7 @@ jobs:
 
       # Both write nothing; each fails with the first differing line when its output is stale.
       - name: Verify docs/CONFIGURATION.md is current
-        uses: TimSchoenle/actions/actions/common/render-template@7e8fd61045447d321c5139eea8f2e2b766333f8b # tag=actions-common-render-template-v1.2.3
+        uses: TimSchoenle/actions/actions/common/render-template@7568f9a485ca91c369095414ce4d9f1a8237df21 # tag=actions-common-render-template-v1.2.4
         with:
           template: .github/templates/CONFIGURATION.md.hbs
           output: docs/CONFIGURATION.md
@@ -231,7 +231,7 @@ jobs:
           check: true
 
       - name: Verify README.md is current
-        uses: TimSchoenle/actions/actions/common/render-template@7e8fd61045447d321c5139eea8f2e2b766333f8b # tag=actions-common-render-template-v1.2.3
+        uses: TimSchoenle/actions/actions/common/render-template@7568f9a485ca91c369095414ce4d9f1a8237df21 # tag=actions-common-render-template-v1.2.4
         with:
           template: .github/templates/README.md.hbs
           output: README.md
