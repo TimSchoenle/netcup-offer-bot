@@ -314,7 +314,7 @@ mod tests_feed_states {
         let mut feed_states = create_empty_feed_states();
 
         let items = feed_states.get_new_feed(Feed::Netcup, Vec::new());
-        assert!(items.is_empty());
+        assert_eq!(items, Vec::<Item>::new());
     }
 
     #[test]
@@ -349,7 +349,7 @@ mod tests_feed_states {
 
         let filtered_items = feed_states.get_new_feed(feed, items);
 
-        assert!(filtered_items.is_empty());
+        assert_eq!(filtered_items, Vec::<Item>::new());
         assert!(!feed_states.is_dirty());
         assert_eq!(feed_states.feeds[&feed].last_update, expected_time);
     }
@@ -390,7 +390,7 @@ mod tests_feed_states {
         let filtered_items = feed_states.get_new_feed(feed, items.clone());
 
         assert!(!feed_states.is_dirty());
-        assert!(filtered_items.is_empty());
+        assert_eq!(filtered_items, Vec::<Item>::new());
     }
 
     #[test]
