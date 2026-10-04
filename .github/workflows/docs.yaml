@@ -15,6 +15,14 @@ name: Docs
 # `check` mode instead, writing nothing and failing if either committed file is stale. Without
 # it, editing a generated page directly would appear to work right up until the next pull request
 # silently reverted it.
+#
+# The same pull request render also rewrites `docs/config.contract.json` and the Dockerfile's
+# `terrace-config:labels` region with `just regenerate`, and commits them. Both are a function of
+# `Config` and of the terrace-config release that renders it, so a dependency bump moves them with
+# no source change at all — and without this, every such bump sat red on `Config Contract` until
+# someone ran the recipe by hand. The reverse gate for them is not here: it is the `Config
+# Contract` job in build.yaml, which runs on every event and therefore also covers `master` and
+# forks.
 
 on:
   push:
@@ -122,15 +130,48 @@ jobs:
           file_pattern: "README.md docs/CONFIGURATION.md"
           commit_message: "docs: render README and CONFIGURATION from their templates"
 
+      # The recipe a developer runs, not a second spelling of the cargo invocation behind it, so a
+      # contract only ever comes out of CI the way it comes out of a workstation.
+      - name: Install just
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2.86.1
+        with:
+          tool: just
+
+      # No `--revision` or `--created`: they would make the document differ on every run and the
+      # diff meaningless.
+      - name: Regenerate the configuration contract
+        run: just regenerate
+
+      # A commit of its own: the contract moves when the configuration surface or terrace-config
+      # moves, which is not when the README's prose does. The commit API re-reads the branch head,
+      # so this lands on top of the one above. The document and the Dockerfile share it — they are
+      # one generator run, and a branch carrying one without the other is a branch whose image
+      # advertises a contract it does not publish. Both paths are named so nothing else left dirty
+      # in the workspace rides along.
+      - name: Commit the configuration contract
+        id: contract
+        uses: TimSchoenle/actions/actions/common/commit-changes@7e8fd61045447d321c5139eea8f2e2b766333f8b # tag=actions-common-commit-changes-v1.5.3
+        with:
+          commit_message: "docs: regenerate the configuration contract"
+          file_pattern: "docs/config.contract.json Dockerfile"
+          token: ${{ steps.generate_token.outputs.token }}
+
       - name: Summarise
         env:
           COMMITTED: ${{ steps.readme.outputs.changes_detected }}
           COMMIT_URL: ${{ steps.readme.outputs.commit_url }}
+          CONTRACT_COMMITTED: ${{ steps.contract.outputs.changes_detected }}
+          CONTRACT_URL: ${{ steps.contract.outputs.commit_url }}
         run: |
           if [ "${COMMITTED}" = "true" ]; then
             echo "Generated documentation re-rendered: ${COMMIT_URL}" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "README.md and docs/CONFIGURATION.md already matched their templates." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${CONTRACT_COMMITTED}" = "true" ]; then
+            echo "The configuration contract and the Dockerfile's LABEL region were regenerated: ${CONTRACT_URL}" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The configuration contract and the Dockerfile's LABEL region already matched the schema." >> "$GITHUB_STEP_SUMMARY"
           fi
 
   check:
