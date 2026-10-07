@@ -327,7 +327,7 @@ jobs:
       # stay under the category they were raised in rather than being orphaned by the derived
       # `trivy-linux-amd64`.
       - name: Check Docker image
-        uses: TimSchoenle/actions/actions/docker/image-check@7568f9a485ca91c369095414ce4d9f1a8237df21 # tag=actions-docker-image-check-v1.1.0
+        uses: TimSchoenle/actions/actions/docker/image-check@c4068f4412c52bcf92d15f9bb255d37b2eafd0b7 # tag=actions-docker-image-check-v1.1.1
         with:
           image: netcup-offer-bot:test
           platform: ${{ matrix.platform }}
