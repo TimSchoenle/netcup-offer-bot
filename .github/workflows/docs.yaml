@@ -150,7 +150,7 @@ jobs:
       # in the workspace rides along.
       - name: Commit the configuration contract
         id: contract
-        uses: TimSchoenle/actions/actions/common/commit-changes@7568f9a485ca91c369095414ce4d9f1a8237df21 # tag=actions-common-commit-changes-v1.5.4
+        uses: TimSchoenle/actions/actions/common/commit-changes@c4068f4412c52bcf92d15f9bb255d37b2eafd0b7 # tag=actions-common-commit-changes-v1.5.5
         with:
           commit_message: "docs: regenerate the configuration contract"
           file_pattern: "docs/config.contract.json Dockerfile"
