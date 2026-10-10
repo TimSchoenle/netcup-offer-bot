@@ -75,9 +75,9 @@ every restart reposts whatever the feed still lists.
 - A key supplied by two of the environment, the secrets directory and `_FILE` indirection fails
   the boot naming both sources. Resolving it by precedence would let a stale variable go on
   shadowing a webhook that has since been rotated.
-- Delivery retries five times. A `429` waits out the `retry-after` header plus a second; a `5xx`
-  or a connection failure backs off two seconds, then four, then eight. The fifth failure gives
-  up on that item and counts it.
+- Delivery is attempted five times. A `429` waits out the `retry-after` header plus a second; a
+  `5xx` or a connection failure backs off two seconds, then four, eight and sixteen. The fifth
+  failure gives up on that item and counts it.
 - A feed payload that does not begin with an `rss` tag is logged as a warning instead of counted
   as a fetch error, because the upstream answers with an HTML page often enough that alerting on
   it would be alerting on netcup's bad minute.
@@ -120,7 +120,7 @@ cargo build --release
 ```
 
 `--no-default-features` drops the `sentry` feature, and with it the client, the panic hook and
-the `tracing` layer — a binary with no error-reporting path out of the process at all. It reads
+the `tracing` layer. That build has no error-reporting path out of the process at all. It reads
 the same `telemetry.sentry` keys and refuses to boot on `telemetry.sentry.enabled`, rather than
 starting as a reporter it has no client for.
 
@@ -252,7 +252,7 @@ nothing else.
 
 | Document | Purpose |
 | --- | --- |
-| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Every configuration key this service reads, in every spelling that can supply it. |
+| [Configuration](docs/CONFIGURATION.md) | Every configuration key this service reads, in every spelling that can supply it. |
 | [docs/config.contract.json](docs/config.contract.json) | — |
 
 ## Contributing
