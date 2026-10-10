@@ -21,6 +21,7 @@ Nothing in this comment may contain a mustache that is not a real reference.
 {{ repo.description }}
 
 [![Release](https://img.shields.io/github/v/release/{{ repo.slug }}?sort=semver)](https://github.com/{{ repo.slug }}/releases)
+[![Chart](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Ftimschoenle.github.io%2Fhelm-charts%2Findex.yaml&query=%24.entries.netcup-offer-bot%5B0%5D.version&label=chart)](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot)
 [![Build](https://img.shields.io/github/actions/workflow/status/{{ repo.slug }}/build.yaml?branch={{ repo.branch }})](https://github.com/{{ repo.slug }}/actions/workflows/build.yaml)
 [![Coverage](https://codecov.io/gh/{{ repo.slug }}/branch/{{ repo.branch }}/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/{{ repo.slug }})
 [![License](https://img.shields.io/github/license/{{ repo.slug }})](LICENSE)
