@@ -21,6 +21,7 @@ Nothing in this comment may contain a mustache that is not a real reference.
 Watches the netcup deals RSS feed and posts new offers to a Discord webhook.
 
 [![Release](https://img.shields.io/github/v/release/TimSchoenle/netcup-offer-bot?sort=semver)](https://github.com/TimSchoenle/netcup-offer-bot/releases)
+[![Chart](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Ftimschoenle.github.io%2Fhelm-charts%2Findex.yaml&query=%24.entries.netcup-offer-bot%5B0%5D.version&label=chart)](https://github.com/TimSchoenle/helm-charts/tree/main/charts/netcup-offer-bot)
 [![Build](https://img.shields.io/github/actions/workflow/status/TimSchoenle/netcup-offer-bot/build.yaml?branch=master)](https://github.com/TimSchoenle/netcup-offer-bot/actions/workflows/build.yaml)
 [![Coverage](https://codecov.io/gh/TimSchoenle/netcup-offer-bot/branch/master/graph/badge.svg?token=JEK95V1906)](https://codecov.io/gh/TimSchoenle/netcup-offer-bot)
 [![License](https://img.shields.io/github/license/TimSchoenle/netcup-offer-bot)](LICENSE)
