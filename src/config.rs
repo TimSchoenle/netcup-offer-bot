@@ -48,7 +48,7 @@ mod sentry;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
-use secrecy::SecretString;
+use secrecy::{ExposeSecret, SecretString};
 use serde::{Deserialize, Deserializer};
 
 pub use level::{LogLevel, SentryLevel};
@@ -159,13 +159,39 @@ pub struct DiscordConfig {
     ///
     /// A bearer credential: anyone holding it can post to the channel. It stays wrapped from the
     /// layer that read it to the request that uses it, so nothing between the two can print it.
+    /// Only an `https` URL loads; any other scheme fails the boot.
     // Not rustdoc: the paragraph above is rendered into the README table for an operator. Why the
     // field is skipped on the way out is for whoever changes this line: `SecretString` has no
     // `Serialize` impl, and the generated table loses nothing, since the key keeps its row and
     // its `secret` flag and a required key has no default to print.
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, deserialize_with = "https_webhook_url")]
     #[cfg_attr(feature = "config-schema", config(secret))]
     pub webhook_url: SecretString,
+}
+
+/// Accepts the Discord webhook only as an absolute `https` URL.
+///
+/// The URL is the credential: its path carries the webhook token, so a request over any other
+/// scheme sends the credential itself in the clear along with every offer posted. Refused here,
+/// at load, so a mistyped `http://` fails the boot instead of leaking on the first post.
+///
+/// Neither error carries the value or any part of it. `url::ParseError` renders only the kind of
+/// failure, and the scheme is left out on purpose: a value pasted without one can parse its host
+/// as the scheme.
+fn https_webhook_url<'de, D>(deserializer: D) -> Result<SecretString, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let webhook = SecretString::deserialize(deserializer)?;
+    match reqwest::Url::parse(webhook.expose_secret()) {
+        Ok(url) if url.scheme() == "https" => Ok(webhook),
+        Ok(_) => Err(serde::de::Error::custom(
+            "the Discord webhook must be an `https` URL",
+        )),
+        Err(error) => Err(serde::de::Error::custom(format_args!(
+            "the Discord webhook is not a valid URL: {error}"
+        ))),
+    }
 }
 
 /// How often the RSS feeds are polled.

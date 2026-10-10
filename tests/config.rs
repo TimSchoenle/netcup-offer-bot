@@ -393,6 +393,36 @@ fn a_missing_required_key_fails_the_load() {
     });
 }
 
+/// A webhook over anything but TLS fails the boot, and the refusal does not repeat the value: the
+/// URL is the credential, and the error is printed to stdout and reported to Sentry.
+#[test]
+fn a_webhook_that_is_not_https_is_refused() {
+    const TOKEN: &str = "plaintext-token";
+    for webhook in [
+        "http://discord.com/api/webhooks/1/plaintext-token",
+        "discord.com/api/webhooks/1/plaintext-token",
+    ] {
+        harness().run(|jail| {
+            jail.env_key(WEBHOOK_KEY, webhook);
+            jail.env_key(CHECK_INTERVAL_KEY, 42);
+
+            let error = jail
+                .load::<Config>()
+                .expect_err("only an `https` webhook loads");
+            let rendered = format!("{error} {error:?}");
+            assert!(
+                rendered.contains("Discord webhook"),
+                "the error must say what was refused: {rendered}"
+            );
+            assert!(
+                !rendered.contains(TOKEN),
+                "the error must not carry the webhook: {rendered}"
+            );
+            Ok(())
+        });
+    }
+}
+
 #[test]
 fn an_unparsable_check_interval_fails_the_load() {
     harness().run(|jail| {

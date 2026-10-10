@@ -80,7 +80,7 @@ impl DiscordWebhook {
             attempts += 1;
             let backoff = match self
                 .client
-                // codeql[rust/cleartext-transmission]
+                // Over TLS: the configuration loader refuses a webhook that is not `https`.
                 .post(self.url.expose_secret())
                 .json(payload)
                 .send()
@@ -122,6 +122,9 @@ impl DiscordWebhook {
                     )));
                 }
                 Err(e) => {
+                    // A transport error renders the request URL, and here the URL is the
+                    // credential: stripped before the error reaches a log line or Sentry.
+                    let e = e.without_url();
                     if attempts >= MAX_ATTEMPTS {
                         return Err(Error::custom(e.to_string()));
                     }

@@ -36,7 +36,7 @@
         "env": "NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL",
         "env_file": "NETCUP_OFFER_BOT_DISCORD__WEBHOOK_URL_FILE",
         "secrets_file": "discord__webhook_url",
-        "docs": "Discord webhook the offers are posted to.\n\nA bearer credential: anyone holding it can post to the channel. It stays wrapped from the\nlayer that read it to the request that uses it, so nothing between the two can print it.",
+        "docs": "Discord webhook the offers are posted to.\n\nA bearer credential: anyone holding it can post to the channel. It stays wrapped from the\nlayer that read it to the request that uses it, so nothing between the two can print it.\nOnly an `https` URL loads; any other scheme fails the boot.",
         "ty": "SecretString",
         "values": [],
         "constraint": {
@@ -547,7 +547,7 @@
         "additionalProperties": false,
         "properties": {
           "webhook_url": {
-            "description": "Discord webhook the offers are posted to.\n\nA bearer credential: anyone holding it can post to the channel. It stays wrapped from the\nlayer that read it to the request that uses it, so nothing between the two can print it.",
+            "description": "Discord webhook the offers are posted to.\n\nA bearer credential: anyone holding it can post to the channel. It stays wrapped from the\nlayer that read it to the request that uses it, so nothing between the two can print it.\nOnly an `https` URL loads; any other scheme fails the boot.",
             "type": "string",
             "writeOnly": true
           }
