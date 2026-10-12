@@ -1,0 +1,3 @@
+# Codecov reads its configuration from the pull request's own commit, so without a code-owner
+# review a pull request could lower the thresholds it is then measured against.
+.github/codecov.yml @TimSchoenle
