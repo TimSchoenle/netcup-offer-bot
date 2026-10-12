@@ -1,4 +1,4 @@
-﻿name: Renovate Auto Approve
+name: Renovate Auto Approve
 
 on:
   pull_request:
