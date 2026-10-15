@@ -104,7 +104,7 @@ jobs:
       # for a reason absent from the diff.
       - name: Collect the README payload
         id: variables
-        uses: TimSchoenle/actions/actions/common/readme-variables@1e89d598e447ab05d36edc9e9d18e8771adf6426 # tag=actions-common-readme-variables-v1.2.6
+        uses: TimSchoenle/actions/actions/common/readme-variables@f33849da61e2397d3a9277762d09a1bf0d2b9d7c # tag=actions-common-readme-variables-v1.2.7
         with:
           branch: ${{ github.event.repository.default_branch }}
           extra: ${{ steps.config.outputs.json }}
@@ -113,7 +113,7 @@ jobs:
       # two commits would each have to name the head the other just moved, and the API call that
       # makes a verified commit rejects one whose parent has changed.
       - name: Render the configuration page
-        uses: TimSchoenle/actions/actions/common/render-template@1e89d598e447ab05d36edc9e9d18e8771adf6426 # tag=actions-common-render-template-v1.2.6
+        uses: TimSchoenle/actions/actions/common/render-template@f33849da61e2397d3a9277762d09a1bf0d2b9d7c # tag=actions-common-render-template-v1.2.7
         with:
           template: .github/templates/CONFIGURATION.md.hbs
           output: docs/CONFIGURATION.md
@@ -150,7 +150,7 @@ jobs:
       # in the workspace rides along.
       - name: Commit the configuration contract
         id: contract
-        uses: TimSchoenle/actions/actions/common/commit-changes@1e89d598e447ab05d36edc9e9d18e8771adf6426 # tag=actions-common-commit-changes-v1.5.6
+        uses: TimSchoenle/actions/actions/common/commit-changes@f33849da61e2397d3a9277762d09a1bf0d2b9d7c # tag=actions-common-commit-changes-v1.5.7
         with:
           commit_message: "docs: regenerate the configuration contract"
           file_pattern: "docs/config.contract.json Dockerfile"
@@ -216,14 +216,14 @@ jobs:
       # for a reason absent from the diff.
       - name: Collect the README payload
         id: variables
-        uses: TimSchoenle/actions/actions/common/readme-variables@1e89d598e447ab05d36edc9e9d18e8771adf6426 # tag=actions-common-readme-variables-v1.2.6
+        uses: TimSchoenle/actions/actions/common/readme-variables@f33849da61e2397d3a9277762d09a1bf0d2b9d7c # tag=actions-common-readme-variables-v1.2.7
         with:
           branch: ${{ github.event.repository.default_branch }}
           extra: ${{ steps.config.outputs.json }}
 
       # Both write nothing; each fails with the first differing line when its output is stale.
       - name: Verify docs/CONFIGURATION.md is current
-        uses: TimSchoenle/actions/actions/common/render-template@1e89d598e447ab05d36edc9e9d18e8771adf6426 # tag=actions-common-render-template-v1.2.6
+        uses: TimSchoenle/actions/actions/common/render-template@f33849da61e2397d3a9277762d09a1bf0d2b9d7c # tag=actions-common-render-template-v1.2.7
         with:
           template: .github/templates/CONFIGURATION.md.hbs
           output: docs/CONFIGURATION.md
@@ -231,7 +231,7 @@ jobs:
           check: true
 
       - name: Verify README.md is current
-        uses: TimSchoenle/actions/actions/common/render-template@1e89d598e447ab05d36edc9e9d18e8771adf6426 # tag=actions-common-render-template-v1.2.6
+        uses: TimSchoenle/actions/actions/common/render-template@f33849da61e2397d3a9277762d09a1bf0d2b9d7c # tag=actions-common-render-template-v1.2.7
         with:
           template: .github/templates/README.md.hbs
           output: README.md
