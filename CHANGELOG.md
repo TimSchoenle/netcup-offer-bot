@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.3.5](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.4...v3.3.5) (2026-10-17)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate terrace-config to v0.15.1 ([#656](https://github.com/TimSchoenle/netcup-offer-bot/issues/656)) ([1de5424](https://github.com/TimSchoenle/netcup-offer-bot/commit/1de54247ea74ae384c049ac25fbd75a4e16caa5b))
+* **security:** enforce an https Discord webhook and keep it out of errors ([#658](https://github.com/TimSchoenle/netcup-offer-bot/issues/658)) ([bdc43aa](https://github.com/TimSchoenle/netcup-offer-bot/commit/bdc43aa1330a27aad69d6bc71d7ed95d74f19014))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#672](https://github.com/TimSchoenle/netcup-offer-bot/issues/672)) ([3450045](https://github.com/TimSchoenle/netcup-offer-bot/commit/3450045b2e62a0245c1d1d7b6648481120b385e0))
+* **deps:** lock file maintenance ([#673](https://github.com/TimSchoenle/netcup-offer-bot/issues/673)) ([656ada9](https://github.com/TimSchoenle/netcup-offer-bot/commit/656ada95a5ac4b03a95df32a29badb657a9f2662))
+* **deps:** update rust crate tokio to v1.53.3 ([#683](https://github.com/TimSchoenle/netcup-offer-bot/issues/683)) ([ab8414f](https://github.com/TimSchoenle/netcup-offer-bot/commit/ab8414f770fc9aa4c4031e3cc950e3808e249105))
+
 ## [3.3.4](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.3...v3.3.4) (2026-10-09)
 
 
