@@ -83,7 +83,7 @@ jobs:
           ref: ${{ github.head_ref }}
           persist-credentials: false
 
-      - name: Install stable toolchain
+      - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
 
       # Two steps rather than one. The first is the only part of the payload this repository can
@@ -195,7 +195,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install stable toolchain
+      - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
 
       # Two steps rather than one. The first is the only part of the payload this repository can

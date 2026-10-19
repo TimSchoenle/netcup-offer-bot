@@ -129,7 +129,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install stable toolchain
+      - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
 
       # Both feature sets. The contract section of the `config` module documentation renders only
@@ -164,7 +164,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install stable toolchain
+      - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
 
       - name: Clippy
@@ -178,8 +178,8 @@ jobs:
   # or a renamed prefix then shows up in the pull request that renamed it, as a diff a reviewer
   # reads — one step earlier than the label check on the built image, and far cheaper.
   #
-  # No toolchain setup: the runner image ships a current stable Rust, and this is a `cargo run`
-  # of one example.
+  # No toolchain setup step: this is a `cargo run` of one example, and the runner's rustup installs
+  # the release `rust-toolchain.toml` pins on the first `cargo` invocation.
   config-contract:
     name: Config Contract
     runs-on: ubuntu-latest
@@ -282,7 +282,7 @@ jobs:
       # writable by any branch, and caching in a job that produces a runtime artefact is the
       # cache-poisoning path zizmor flags. Only the generator is compiled, so there is nearly
       # nothing to save.
-      - name: Install stable toolchain
+      - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
         with:
           cache: false
