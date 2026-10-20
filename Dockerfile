@@ -76,16 +76,22 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARG
 
 COPY . .
 
+# Builds on the dependencies the cook step left in `target/`, so only this crate compiles here.
+# `target/` must not be a cache mount: a mount hides what the cook layer put there, and in CI,
+# where cache mounts start empty, every dependency was compiled a second time.
+#
+# `target/` is removed in the same step, so this layer holds the binary and nothing else. It
+# changes with every commit, and it is what the layer cache would otherwise export on every run.
 RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARGETARCH} \
     --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-${TARGETARCH} \
-    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target,id=cargo-target-${TARGETARCH} \
     cargo build --release --target ${BUILD_TARGET} && \
-    cp ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME} /tmp/${BINARY_NAME}
+    cp ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME} /tmp/${BINARY_NAME} && \
+    rm -rf ${EXECUTION_DIRECTORY}/target
 
 # Upload debug symbols to Sentry before stripping.
 #
-# The upload reads /tmp/${BINARY_NAME}: the build output under target/ lives on a
-# cache mount and is no longer present once the previous RUN has finished.
+# The upload reads /tmp/${BINARY_NAME}: the build output under target/ was removed with the
+# previous RUN.
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 ARG VERSION
