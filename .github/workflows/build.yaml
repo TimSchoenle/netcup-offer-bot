@@ -129,8 +129,12 @@ jobs:
         with:
           persist-credentials: false
 
+      # Saved from `master` only, for the reason given at `Build Docker image`. A pull request
+      # restores `master`'s entry and saved a ~300 MB one of its own that nothing read.
       - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          cache-save-if: ${{ github.event_name == 'push' }}
 
       # Both feature sets. The contract section of the `config` module documentation renders only
       # under `config-schema`, and it links an item that does not exist without it, so each set
@@ -164,8 +168,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # Saved from `master` only, as in `doc`.
       - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          cache-save-if: ${{ github.event_name == 'push' }}
 
       - name: Clippy
         run: cargo clippy --no-default-features --all-targets -- -D warnings
