@@ -261,17 +261,22 @@ jobs:
       # second time at a second moment and the labels cannot describe a different document than
       # the one in the image. `VERSION` matches the image build's, because it reaches the
       # document's `app.version` field and the two copies are compared below.
+      #
+      # The same cache as the step above, read and not written. The image build takes cached
+      # layers lazily: a layer it only needed to reference is never pulled onto the runner. A
+      # plain `docker buildx build` here has no cache source, so on a run whose image came from
+      # the cache it finds none of the contract stage locally and rebuilds it, toolchain and
+      # dependencies included.
       - name: Export the config contract
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          set -euo pipefail
-          docker buildx build \
-            --target contract-export \
-            --platform "${PLATFORM}" \
-            --output "type=local,dest=./contract-out" \
-            --build-arg VERSION=test \
-            .
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          target: contract-export
+          outputs: type=local,dest=./contract-out
+          build-args: |
+            VERSION=test
+          cache-from: type=gha,scope=${{ matrix.arch }}
 
       # The image, never the Dockerfile. A source diff cannot see a base image that overrode a
       # label, a `LABEL` line deleted on a branch nobody diffed, or a build argument that
