@@ -50,7 +50,7 @@ jobs:
           egress-policy: audit
 
       - name: Run Coverage
-        uses: TimSchoenle/actions/actions/rust/coverage-codecov@eaf935674fec7116856ca5e138e1a2dca3f8146d # tag=actions-rust-coverage-codecov-v2.0.2
+        uses: TimSchoenle/actions/actions/rust/coverage-codecov@81e4009704e0963651bbd8275e31244c1d1e220d # tag=actions-rust-coverage-codecov-v2.0.3
         with:
           flags: rust
 
@@ -87,7 +87,7 @@ jobs:
           egress-policy: audit
 
       - name: Auto Format
-        uses: TimSchoenle/actions/actions/rust/auto-format@eaf935674fec7116856ca5e138e1a2dca3f8146d # tag=actions-rust-auto-format-v1.1.23
+        uses: TimSchoenle/actions/actions/rust/auto-format@81e4009704e0963651bbd8275e31244c1d1e220d # tag=actions-rust-auto-format-v1.1.25
         with:
           bot_app_id: ${{ secrets.ACTIONS_MAINTENANCE_APP_ID }}
           bot_private_key: ${{ secrets.ACTIONS_MAINTENANCE_PRIVATE_KEY }}
@@ -105,7 +105,7 @@ jobs:
           egress-policy: audit
 
       - name: Run Clippy
-        uses: TimSchoenle/actions/actions/rust/clippy@7e8fd61045447d321c5139eea8f2e2b766333f8b # tag=actions-rust-clippy-v1.1.12
+        uses: TimSchoenle/actions/actions/rust/clippy@ea4465fbe2bec98efad19b63849f8d1ac67b5c88 # tag=actions-rust-clippy-v1.1.13
 
 
   # rustdoc, with warnings fatal. `cargo check` never runs the rustdoc lints, so a broken
@@ -199,7 +199,7 @@ jobs:
       # `image` is empty, so the two checks needing one are skipped and this job stays the
       # cheap half.
       - name: Check the committed contract and the Dockerfile LABEL region
-        uses: TimSchoenle/actions/actions/rust/config-contract@eaf935674fec7116856ca5e138e1a2dca3f8146d # tag=actions-rust-config-contract-v1.3.8
+        uses: TimSchoenle/actions/actions/rust/config-contract@ea4465fbe2bec98efad19b63849f8d1ac67b5c88 # tag=actions-rust-config-contract-v1.4.0
         with:
           example: config-contract
           features: config-schema
@@ -289,7 +289,7 @@ jobs:
 
       - name: Verify the image carries the contract labels
         id: contract
-        uses: TimSchoenle/actions/actions/rust/config-contract@eaf935674fec7116856ca5e138e1a2dca3f8146d # tag=actions-rust-config-contract-v1.3.8
+        uses: TimSchoenle/actions/actions/rust/config-contract@ea4465fbe2bec98efad19b63849f8d1ac67b5c88 # tag=actions-rust-config-contract-v1.4.0
         with:
           example: config-contract
           features: config-schema
@@ -329,7 +329,7 @@ jobs:
       # stay under the category they were raised in rather than being orphaned by the derived
       # `trivy-linux-amd64`.
       - name: Check Docker image
-        uses: TimSchoenle/actions/actions/docker/image-check@eaf935674fec7116856ca5e138e1a2dca3f8146d # tag=actions-docker-image-check-v1.1.6
+        uses: TimSchoenle/actions/actions/docker/image-check@8da2713994ba2b5f542e7e3334db287b1e22854a # tag=actions-docker-image-check-v1.1.7
         with:
           image: netcup-offer-bot:test
           platform: ${{ matrix.platform }}
@@ -355,7 +355,7 @@ jobs:
           egress-policy: audit
 
       - name: Comment image sizes on PR
-        uses: TimSchoenle/actions/actions/docker/image-check-summary@eaf935674fec7116856ca5e138e1a2dca3f8146d # tag=actions-docker-image-check-summary-v1.1.5
+        uses: TimSchoenle/actions/actions/docker/image-check-summary@8da2713994ba2b5f542e7e3334db287b1e22854a # tag=actions-docker-image-check-summary-v1.1.6
 
   dependency-review:
     name: Dependency Review
