@@ -135,6 +135,19 @@ ARG EXECUTION_DIRECTORY
 ARG TARGETARCH
 ARG VERSION
 
+# A debug build whose only output is two text files, so debug info would be dead weight in the
+# cooked layer below.
+ENV CARGO_PROFILE_DEV_DEBUG=0
+
+COPY --from=planner /app/recipe.json recipe.json
+
+# The generator's dependencies, from the same recipe as `builder`'s, so they are cached as a layer
+# that changes only with the manifests and the lockfile. The selection must match the `cargo run`
+# below (profile, features, examples) or the run compiles them again.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-contract-${TARGETARCH} \
+    --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-contract-${TARGETARCH} \
+    cargo chef cook --features config-schema --examples --recipe-path recipe.json
+
 COPY . .
 
 # Caches of its own, sharing none of `builder`'s. This stage depends on nothing `builder`
@@ -145,22 +158,22 @@ COPY . .
 # stages behind `sharing=locked`, and cost nothing in CI, where cache mounts are not exported and
 # start empty either way.
 #
-# The target cache would have had to be separate regardless: this is a host-target debug build of
-# an example and shares no artefacts with a `--release --target *-musl` one.
+# `target/` is not a cache mount, for the reason given in `builder`: the cooked dependencies live
+# in the layer, and a mount would hide them. It is removed at the end so the layer holds `/out`.
 #
 # `--version` is passed only when the build was told a release. Absent, the document simply omits
 # the field, which is what keeps the committed copy in `docs/` stable across a version bump and
 # so keeps the drift gate from failing every release pull request.
 RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-contract-${TARGETARCH} \
     --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-contract-${TARGETARCH} \
-    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target,id=cargo-target-contract-${TARGETARCH} \
     sh -eu -c '\
       mkdir -p /out ; \
       if [ -n "${VERSION:-}" ] ; then set -- --version "${VERSION}" ; else set -- ; fi ; \
       cargo run --quiet --features config-schema --example config-contract \
         -- --format contract "$@" > /out/contract.json ; \
       cargo run --quiet --features config-schema --example config-contract \
-        -- --format labels   "$@" > /out/contract.labels \
+        -- --format labels   "$@" > /out/contract.labels ; \
+      rm -rf target \
     '
 
 # The two generated files and nothing else, so `--output type=local` puts them on the host
