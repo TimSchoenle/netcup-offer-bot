@@ -1,3 +1,10 @@
+# Nothing in the image build reads these, and `.git/` differs on every checkout of the same commit
+# (its index records file timestamps). Sent with the context, they made every `COPY . .` a cache
+# miss: a re-run of an unchanged commit compiled the binary again, and so did a commit that touched
+# only a workflow.
+/.git/
+/.github/
+
 /data/
 /netcup-offer-bot.iml
 

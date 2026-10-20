@@ -10,8 +10,6 @@ FROM lukemathwalker/cargo-chef:latest-rust-alpine AS chef-base
 ARG EXECUTION_DIRECTORY
 
 RUN apk add --no-cache \
-    curl \
-    jq \
     musl-dev \
     openssl-dev \
     openssl-libs-static \
@@ -42,19 +40,25 @@ RUN rustup toolchain install --no-self-update
 # and similar). The few megabytes saved are not worth an image that cannot run.
 FROM chef-base AS chef-amd64
 ENV BUILD_TARGET=x86_64-unknown-linux-musl \
-    SENTRY_CLI_ARCH=x86_64 \
     UPX_ENABLED=1
 
 FROM chef-base AS chef-arm64
 ENV BUILD_TARGET=aarch64-unknown-linux-musl \
-    SENTRY_CLI_ARCH=aarch64 \
     UPX_ENABLED=0
 
 FROM chef-${TARGETARCH} AS chef
 
-RUN LATEST_VERSION=$(curl -s https://api.github.com/repos/getsentry/sentry-cli/releases/latest | jq -r .tag_name) && \
-    curl -fsSL "https://downloads.sentry-cdn.com/sentry-cli/${LATEST_VERSION}/sentry-cli-Linux-${SENTRY_CLI_ARCH}" -o /usr/local/bin/sentry-cli && \
-    chmod +x /usr/local/bin/sentry-cli
+# Copied from Sentry's own image, pinned by digest, which Renovate bumps like the base images. It
+# used to be downloaded from the tag an unauthenticated GitHub API call named as the latest
+# release: a rate-limited call returns `null` and fails the build, and two builds of one commit
+# could ship different CLIs. The index is multi-platform, so BuildKit picks the binary for the
+# architecture being built.
+COPY --from=getsentry/sentry-cli:3.8.0@sha256:973a77ecc96852081f946e36a8f090ed74a02249009594aff51575e593871427 \
+    /bin/sentry-cli /usr/local/bin/sentry-cli
+
+# The upload in `builder` runs only when a token is supplied, which CI never does. Without this, a
+# CLI that cannot start on the build architecture would surface only in the release job.
+RUN sentry-cli --version
 
 FROM chef AS planner
 COPY . .
@@ -76,16 +80,22 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARG
 
 COPY . .
 
+# Builds on the dependencies the cook step left in `target/`, so only this crate compiles here.
+# `target/` must not be a cache mount: a mount hides what the cook layer put there, and in CI,
+# where cache mounts start empty, every dependency was compiled a second time.
+#
+# `target/` is removed in the same step, so this layer holds the binary and nothing else. It
+# changes with every commit, and it is what the layer cache would otherwise export on every run.
 RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-${TARGETARCH} \
     --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-${TARGETARCH} \
-    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target,id=cargo-target-${TARGETARCH} \
     cargo build --release --target ${BUILD_TARGET} && \
-    cp ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME} /tmp/${BINARY_NAME}
+    cp ${EXECUTION_DIRECTORY}/target/${BUILD_TARGET}/release/${BINARY_NAME} /tmp/${BINARY_NAME} && \
+    rm -rf ${EXECUTION_DIRECTORY}/target
 
 # Upload debug symbols to Sentry before stripping.
 #
-# The upload reads /tmp/${BINARY_NAME}: the build output under target/ lives on a
-# cache mount and is no longer present once the previous RUN has finished.
+# The upload reads /tmp/${BINARY_NAME}: the build output under target/ was removed with the
+# previous RUN.
 ARG SENTRY_ORG
 ARG SENTRY_PROJECT
 ARG VERSION
@@ -129,6 +139,19 @@ ARG EXECUTION_DIRECTORY
 ARG TARGETARCH
 ARG VERSION
 
+# A debug build whose only output is two text files, so debug info would be dead weight in the
+# cooked layer below.
+ENV CARGO_PROFILE_DEV_DEBUG=0
+
+COPY --from=planner /app/recipe.json recipe.json
+
+# The generator's dependencies, from the same recipe as `builder`'s, so they are cached as a layer
+# that changes only with the manifests and the lockfile. The selection must match the `cargo run`
+# below (profile, features, examples) or the run compiles them again.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-contract-${TARGETARCH} \
+    --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-contract-${TARGETARCH} \
+    cargo chef cook --features config-schema --examples --recipe-path recipe.json
+
 COPY . .
 
 # Caches of its own, sharing none of `builder`'s. This stage depends on nothing `builder`
@@ -139,22 +162,22 @@ COPY . .
 # stages behind `sharing=locked`, and cost nothing in CI, where cache mounts are not exported and
 # start empty either way.
 #
-# The target cache would have had to be separate regardless: this is a host-target debug build of
-# an example and shares no artefacts with a `--release --target *-musl` one.
+# `target/` is not a cache mount, for the reason given in `builder`: the cooked dependencies live
+# in the layer, and a mount would hide them. It is removed at the end so the layer holds `/out`.
 #
 # `--version` is passed only when the build was told a release. Absent, the document simply omits
 # the field, which is what keeps the committed copy in `docs/` stable across a version bump and
 # so keeps the drift gate from failing every release pull request.
 RUN --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry-contract-${TARGETARCH} \
     --mount=type=cache,target=/usr/local/cargo/git,id=cargo-git-contract-${TARGETARCH} \
-    --mount=type=cache,target=${EXECUTION_DIRECTORY}/target,id=cargo-target-contract-${TARGETARCH} \
     sh -eu -c '\
       mkdir -p /out ; \
       if [ -n "${VERSION:-}" ] ; then set -- --version "${VERSION}" ; else set -- ; fi ; \
       cargo run --quiet --features config-schema --example config-contract \
         -- --format contract "$@" > /out/contract.json ; \
       cargo run --quiet --features config-schema --example config-contract \
-        -- --format labels   "$@" > /out/contract.labels \
+        -- --format labels   "$@" > /out/contract.labels ; \
+      rm -rf target \
     '
 
 # The two generated files and nothing else, so `--output type=local` puts them on the host

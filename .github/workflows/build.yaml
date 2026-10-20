@@ -129,8 +129,12 @@ jobs:
         with:
           persist-credentials: false
 
+      # Saved from `master` only, for the reason given at `Build Docker image`. A pull request
+      # restores `master`'s entry and saved a ~300 MB one of its own that nothing read.
       - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          cache-save-if: ${{ github.event_name == 'push' }}
 
       # Both feature sets. The contract section of the `config` module documentation renders only
       # under `config-schema`, and it links an item that does not exist without it, so each set
@@ -164,8 +168,11 @@ jobs:
         with:
           persist-credentials: false
 
+      # Saved from `master` only, as in `doc`.
       - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        with:
+          cache-save-if: ${{ github.event_name == 'push' }}
 
       - name: Clippy
         run: cargo clippy --no-default-features --all-targets -- -D warnings
@@ -241,6 +248,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
+      # Every build reads the layer cache of its architecture; only a push to `master` writes it.
+      #
+      # A pull request's export was never read back, not even by a re-run of the same commit, and
+      # `master` never reads it either. It still counted against the repository's 10 GB Actions
+      # cache, where GitHub makes room by evicting the least recently used entries, `master`'s
+      # among them.
       - name: Build Docker image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
@@ -255,23 +268,28 @@ jobs:
             vendor=Timmi6790
             VERSION=test
           cache-from: type=gha,scope=${{ matrix.arch }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.arch }}
+          cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope={0}', matrix.arch) || '' }}
 
       # Exported from the same build graph the image came from, so the generator is not run a
       # second time at a second moment and the labels cannot describe a different document than
       # the one in the image. `VERSION` matches the image build's, because it reaches the
       # document's `app.version` field and the two copies are compared below.
+      #
+      # The same cache as the step above, read and not written. The image build takes cached
+      # layers lazily: a layer it only needed to reference is never pulled onto the runner. A
+      # plain `docker buildx build` here has no cache source, so on a run whose image came from
+      # the cache it finds none of the contract stage locally and rebuilds it, toolchain and
+      # dependencies included.
       - name: Export the config contract
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          set -euo pipefail
-          docker buildx build \
-            --target contract-export \
-            --platform "${PLATFORM}" \
-            --output "type=local,dest=./contract-out" \
-            --build-arg VERSION=test \
-            .
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          target: contract-export
+          outputs: type=local,dest=./contract-out
+          build-args: |
+            VERSION=test
+          cache-from: type=gha,scope=${{ matrix.arch }}
 
       # The image, never the Dockerfile. A source diff cannot see a base image that overrode a
       # label, a `LABEL` line deleted on a branch nobody diffed, or a build argument that
