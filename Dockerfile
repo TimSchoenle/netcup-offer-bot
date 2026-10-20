@@ -10,8 +10,6 @@ FROM lukemathwalker/cargo-chef:latest-rust-alpine AS chef-base
 ARG EXECUTION_DIRECTORY
 
 RUN apk add --no-cache \
-    curl \
-    jq \
     musl-dev \
     openssl-dev \
     openssl-libs-static \
@@ -42,19 +40,25 @@ RUN rustup toolchain install --no-self-update
 # and similar). The few megabytes saved are not worth an image that cannot run.
 FROM chef-base AS chef-amd64
 ENV BUILD_TARGET=x86_64-unknown-linux-musl \
-    SENTRY_CLI_ARCH=x86_64 \
     UPX_ENABLED=1
 
 FROM chef-base AS chef-arm64
 ENV BUILD_TARGET=aarch64-unknown-linux-musl \
-    SENTRY_CLI_ARCH=aarch64 \
     UPX_ENABLED=0
 
 FROM chef-${TARGETARCH} AS chef
 
-RUN LATEST_VERSION=$(curl -s https://api.github.com/repos/getsentry/sentry-cli/releases/latest | jq -r .tag_name) && \
-    curl -fsSL "https://downloads.sentry-cdn.com/sentry-cli/${LATEST_VERSION}/sentry-cli-Linux-${SENTRY_CLI_ARCH}" -o /usr/local/bin/sentry-cli && \
-    chmod +x /usr/local/bin/sentry-cli
+# Copied from Sentry's own image, pinned by digest, which Renovate bumps like the base images. It
+# used to be downloaded from the tag an unauthenticated GitHub API call named as the latest
+# release: a rate-limited call returns `null` and fails the build, and two builds of one commit
+# could ship different CLIs. The index is multi-platform, so BuildKit picks the binary for the
+# architecture being built.
+COPY --from=getsentry/sentry-cli:3.8.0@sha256:973a77ecc96852081f946e36a8f090ed74a02249009594aff51575e593871427 \
+    /bin/sentry-cli /usr/local/bin/sentry-cli
+
+# The upload in `builder` runs only when a token is supplied, which CI never does. Without this, a
+# CLI that cannot start on the build architecture would surface only in the release job.
+RUN sentry-cli --version
 
 FROM chef AS planner
 COPY . .
