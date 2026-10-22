@@ -186,10 +186,14 @@ fn build_embed(item: &Item) -> serde_json::Value {
 }
 
 /// Wraps the embed in a payload posted under the feed's name, not the webhook's own.
+///
+/// Every mention is suppressed. The embed carries text from the feed, and nothing this process
+/// posts is meant to notify anyone, so an `@everyone` or a role mention in an offer must not ping.
 fn build_payload(feed: Feed, embed: &serde_json::Value) -> serde_json::Value {
     json!({
         "username": format!("Feed - {}", feed.name()),
-        "embeds": [embed]
+        "embeds": [embed],
+        "allowed_mentions": { "parse": [] }
     })
 }
 
@@ -211,4 +215,26 @@ fn retry_after(response: &Response) -> Duration {
 /// Doubles from two seconds: two on the first retry, then four, eight and sixteen.
 fn backoff(attempts: u32) -> Duration {
     Duration::from_secs(2u64.pow(attempts))
+}
+
+#[cfg(test)]
+mod tests {
+    use rss::Item;
+    use serde_json::json;
+
+    use super::{build_embed, build_payload};
+    use crate::feed::Feed;
+
+    #[test]
+    fn payload_suppresses_every_mention() {
+        let mut item = Item::default();
+        item.set_title(Some("@everyone <@&123456789012345678>".to_string()));
+        item.set_description(Some("@here <@123456789012345678>".to_string()));
+
+        let payload = build_payload(Feed::Netcup, &build_embed(&item));
+        let serialised: serde_json::Value =
+            serde_json::from_str(&payload.to_string()).expect("payload round-trips as JSON");
+
+        assert_eq!(serialised["allowed_mentions"], json!({ "parse": [] }));
+    }
 }
