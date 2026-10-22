@@ -28,6 +28,13 @@ const DEFAULT_RETRY_AFTER: Duration = Duration::from_secs(1);
 /// the retry back inside the window.
 const RETRY_AFTER_BUFFER: Duration = Duration::from_secs(1);
 
+/// Longest one attempt waits for the TCP connection and TLS handshake with Discord.
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Longest one attempt may take end to end. A timed-out attempt is a transport error and is
+/// retried like a dropped connection.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+
 /// One Discord webhook, ready to post to.
 #[derive(Debug)]
 pub struct DiscordWebhook {
@@ -39,12 +46,18 @@ pub struct DiscordWebhook {
 
 impl DiscordWebhook {
     /// Builds a webhook that posts to `url`.
+    ///
+    /// # Panics
+    /// Panics if the TLS backend cannot be initialised.
     #[must_use]
     pub fn new(url: SecretString) -> Self {
-        DiscordWebhook {
-            url,
-            client: reqwest::Client::new(),
-        }
+        let client = reqwest::Client::builder()
+            .connect_timeout(CONNECT_TIMEOUT)
+            .timeout(REQUEST_TIMEOUT)
+            .build()
+            .expect("the Discord webhook HTTP client could not be built");
+
+        DiscordWebhook { url, client }
     }
 
     /// Posts one item as an embed carrying its title, description, link, publication date and
