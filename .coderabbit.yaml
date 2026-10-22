@@ -53,6 +53,14 @@ reviews:
         Secret-bearing keys must use `SecretString`, carry no default, and must not be echoed by
         `explain` output or validation errors. Reject defaults that bind the exporter to
         `0.0.0.0` or weaken the https-only webhook check.
+    - path: "src/config.rs"
+      instructions: |
+        Configuration surface consumed by terrace-config and published as the config contract.
+        Any key added, renamed or removed changes `docs/config.contract.json`, the Dockerfile
+        label block and the generated docs; require those to be regenerated in the same change.
+        Secret-bearing keys must use `SecretString`, carry no default, and must not be echoed by
+        `explain` output or validation errors. Reject defaults that bind the exporter to
+        `0.0.0.0` or weaken the https-only webhook check.
     - path: "src/feed_state.rs"
       instructions: |
         Persists the per-feed watermark to disk. Check atomic writes (temp file plus rename),
