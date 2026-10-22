@@ -104,8 +104,11 @@ jobs:
         with:
           egress-policy: audit
 
+      # The shared action only annotates findings; `-D warnings` is what fails the job on them.
       - name: Run Clippy
         uses: TimSchoenle/actions/actions/rust/clippy@ea4465fbe2bec98efad19b63849f8d1ac67b5c88 # tag=actions-rust-clippy-v1.1.13
+        with:
+          clippy_arguments: '--all-features --all-targets -- -D warnings'
 
 
   # rustdoc, with warnings fatal. `cargo check` never runs the rustdoc lints, so a broken
