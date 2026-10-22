@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+tone_instructions: "Direct, no filler, no praise."
+
+reviews:
+  profile: assertive
+
+  auto_review:
+    # CodeRabbit cannot filter by head branch, so automated pull requests are
+    # skipped by author: Renovate opens `renovate/*`, the release manager app
+    # opens `release-please--*`. Both the bot login and the bare app slug are
+    # listed because the match is exact.
+    ignore_usernames:
+      - "renovate[bot]"
+      - "renovate"
+      - "automatic-release-manager[bot]"
+      - "automatic-release-manager"
+
+  # Generated or tool-owned files. Review their sources instead.
+  path_filters:
+    - "!Cargo.lock"
+    - "!target/**"
+    - "!CHANGELOG.md"
+    - "!.release-please-manifest.json"
+    - "!README.md" # rendered from .github/templates/README.md.hbs
+    - "!docs/CONFIGURATION.md" # rendered from .github/templates/CONFIGURATION.md.hbs
+    - "!docs/config.contract.json" # emitted by examples/config-contract.rs, drift-gated in CI
+
+  path_instructions:
+    - path: "src/**/*.rs"
+      instructions: |
+        Long-running service (container binary plus its library half) that polls the netcup RSS
+        feed and posts to a Discord webhook. Flag:
+        - `unwrap`, `expect`, `panic!` or panicking indexing outside tests and outside the
+          documented duplicate-metric-registration case; errors go through `src/error.rs`.
+        - Blocking work on the tokio runtime: `std::fs`, `std::thread::sleep` or CPU-heavy
+          parsing inside async fns without `spawn_blocking` or `tokio::fs`.
+        - Outbound HTTP without a timeout, unbounded response bodies, or retry loops without a
+          ceiling; respect `retry-after` and never retry non-idempotent failures blindly.
+        - Logging, `Debug` output, error messages or Sentry events that could contain the webhook
+          URL or Sentry DSN. Secrets must stay in `secrecy::SecretString` and never be exposed
+          beyond the call that needs them.
+        - Untrusted feed content (titles, links, descriptions) passed to Discord without length
+          limits or without neutralising mentions (`@everyone`, `@here`, role pings).
+        - Missing rustdoc on public items, missing `# Errors` / `# Panics` sections, and bare
+          `#[allow(...)]` without a reason.
+        - New dependencies or default features that grow the musl image or add a second HTTP/TLS
+          stack; the `sentry` feature must remain removable with `--no-default-features`.
+    - path: "src/config/**"
+      instructions: |
+        Configuration surface consumed by terrace-config and published as the config contract.
+        Any key added, renamed or removed changes `docs/config.contract.json`, the Dockerfile
+        label block and the generated docs; require those to be regenerated in the same change.
+        Secret-bearing keys must use `SecretString`, carry no default, and must not be echoed by
+        `explain` output or validation errors. Reject defaults that bind the exporter to
+        `0.0.0.0` or weaken the https-only webhook check.
+    - path: "src/config.rs"
+      instructions: |
+        Configuration surface consumed by terrace-config and published as the config contract.
+        Any key added, renamed or removed changes `docs/config.contract.json`, the Dockerfile
+        label block and the generated docs; require those to be regenerated in the same change.
+        Secret-bearing keys must use `SecretString`, carry no default, and must not be echoed by
+        `explain` output or validation errors. Reject defaults that bind the exporter to
+        `0.0.0.0` or weaken the https-only webhook check.
+    - path: "src/feed_state.rs"
+      instructions: |
+        Persists the per-feed watermark to disk. Check atomic writes (temp file plus rename),
+        behaviour on a corrupt or partially written file, path handling from configuration, and
+        that a lost file can only cause reposts, never a crash loop.
+    - path: "tests/**"
+      instructions: |
+        Integration tests using wiremock and terrace-config's test harness. Do not apply
+        documentation or panic rules. Flag tests that hit the real network, depend on wall-clock
+        timing without tolerance, or leak environment variables between tests.
+    - path: "examples/**"
+      instructions: |
+        Generators behind the `config-schema` feature that emit the contract, labels and README
+        payload. Output must be deterministic; flag anything that embeds timestamps, absolute
+        paths or host-specific data.
+    - path: "Dockerfile"
+      instructions: |
+        Multi-stage musl build with cargo-chef running as a non-root user on `scratch`. Every base
+        image must stay pinned by digest. Flag secrets passed as build args instead of
+        `--mount=type=secret`, cache mounts shared between concurrent stages, a runtime stage that
+        gains a shell or package manager, and any root `USER`. The region between
+        `terrace-config:labels:begin` and `:end` is generated; it must match the contract, not be
+        hand-edited.
+    - path: ".github/workflows/**"
+      instructions: |
+        Every third-party action must be pinned to a full commit SHA with a version comment.
+        Require least-privilege `permissions:` at workflow or job level, `persist-credentials: false`
+        on checkout unless pushing, no untrusted `${{ github.event.* }}` interpolation into `run:`,
+        and no `pull_request_target` that checks out or executes PR code. Release jobs that sign
+        or push images must not be reachable from pull requests.
+    - path: ".github/templates/**"
+      instructions: |
+        Sources of the generated README.md and docs/CONFIGURATION.md. Review rendered wording,
+        links and badge URLs here; every mustache must reference a real variable.
+    - path: "**/*.sh"
+      instructions: |
+        Require `set -euo pipefail`, quoted expansions, and no reliance on GNU-only flags
+        without a comment.
+    - path: "justfile"
+      instructions: |
+        Recipes must stay thin wrappers over cargo and the generator; flag duplicated checking
+        logic that belongs to the shared `config-contract` action, and unquoted shell variables.
+
+  pre_merge_checks:
+    title:
+      mode: error
+      requirements: |
+        Must follow Conventional Commits: `type(scope)?!?: subject`. Allowed types: feat, fix, perf,
+        revert, docs, refactor, test, style, ci, build, chore, deps. Lowercase, imperative subject,
+        no trailing period. release-please derives version bumps and the changelog from this title.
+
+  tools:
+    # Both already run in CI (build.yaml clippy jobs, security.yml zizmor); duplicating them adds noise.
+    clippy:
+      enabled: false
+    zizmor:
+      enabled: false
+    actionlint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+    # CI scans the built image with Trivy but does not lint the Dockerfile itself.
+    hadolint:
+      enabled: true
