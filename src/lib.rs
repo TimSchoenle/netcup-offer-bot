@@ -88,11 +88,16 @@ impl FeedChecker {
     /// the checker starts with no watermark.
     ///
     /// # Panics
-    /// Panics if the file exists and cannot be read or holds JSON that is not a watermark set, or
-    /// if `./data` does not exist and cannot be created.
+    /// Panics if the file exists and cannot be read or holds JSON that is not a watermark set, if
+    /// `./data` does not exist and cannot be created, or if the TLS backend cannot be initialised.
     #[must_use]
     pub fn from_config(config: &Config) -> Self {
-        let client = ClientBuilder::new(reqwest::Client::new())
+        let http = reqwest::Client::builder()
+            .connect_timeout(feed::CONNECT_TIMEOUT)
+            .timeout(feed::REQUEST_TIMEOUT)
+            .build()
+            .expect("the feed HTTP client could not be built");
+        let client = ClientBuilder::new(http)
             .with(TracingMiddleware::<SpanBackendWithUrl>::new())
             .build();
         // Unwrapped deliberately. The image runs as `1001:1001`, and a volume owned by another

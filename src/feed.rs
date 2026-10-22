@@ -4,11 +4,21 @@
 //! that also decides what the new variant is called in the metrics and in Discord.
 
 use std::fmt;
+use std::time::Duration;
 
 use reqwest_middleware::ClientWithMiddleware;
 use rss::Channel;
 use rss::validation::Validate;
 use serde::{Deserialize, Serialize};
+
+/// Longest a fetch waits for the TCP connection and TLS handshake with the feed host.
+pub(crate) const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Longest one fetch may take end to end, body included.
+///
+/// A round fetches its feeds one after the other, so without this bound a single stalled
+/// connection would hold the poll loop indefinitely and no later round would start.
+pub(crate) const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// One RSS source, with its address.
 ///
@@ -46,11 +56,12 @@ impl Feed {
 
     /// Fetches the feed and returns it parsed and validated.
     ///
-    /// The whole body is read into memory before parsing starts, and nothing here sets a timeout,
-    /// so a stalled connection stalls the round it is in for as long as `client` allows.
+    /// The whole body is read into memory before parsing starts. How long a fetch may take is
+    /// bounded by `client`; the one [`FeedChecker::from_config`](crate::FeedChecker::from_config)
+    /// builds gives up after ten seconds to connect and thirty seconds in total.
     ///
     /// # Errors
-    /// Fails if the request does not complete, if the body does not parse as RSS, or if the
+    /// Fails if the request does not complete in time, if the body does not parse as RSS, or if the
     /// document fails RSS validation. netcup answers an empty deals list with a body that does not
     /// begin with an `rss` tag, and [`FeedChecker::check_feed`](crate::FeedChecker::check_feed) is
     /// the one place that tells that apart from a fetch worth counting.
