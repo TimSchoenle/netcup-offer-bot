@@ -53,7 +53,7 @@ FROM chef-${TARGETARCH} AS chef
 # release: a rate-limited call returns `null` and fails the build, and two builds of one commit
 # could ship different CLIs. The index is multi-platform, so BuildKit picks the binary for the
 # architecture being built.
-COPY --from=getsentry/sentry-cli:3.8.0@sha256:973a77ecc96852081f946e36a8f090ed74a02249009594aff51575e593871427 \
+COPY --from=getsentry/sentry-cli:3.8.2@sha256:633122f5fbd774716a0ebbcd7ece9c0584aa781cc61a84e7ce57964c635d6559 \
     /bin/sentry-cli /usr/local/bin/sentry-cli
 
 # The upload in `builder` runs only when a token is supplied, which CI never does. Without this, a
