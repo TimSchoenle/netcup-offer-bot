@@ -34,11 +34,11 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-# Shared with the `fmt` job in build.yaml rather than scoped to this workflow: both commit to the
-# pull request branch, and the API call that makes a verified commit rejects one whose parent has
-# moved. Two writers racing would leave one of them failing for no reason a reader could act on,
-# so they queue instead. `cancel-in-progress: false` for the same reason — a cancelled run here
-# means a branch left holding a half-generated file.
+# Shared with the `fmt-commit` job in build.yaml rather than scoped to this workflow: both commit
+# to the pull request branch, and the API call that makes a verified commit rejects one whose
+# parent has moved. Two writers racing would leave one of them failing for no reason a reader
+# could act on, so they queue instead. `cancel-in-progress: false` for the same reason — a
+# cancelled run here means a branch left holding a half-generated file.
 concurrency:
   group: branch-writes-${{ github.ref }}
   cancel-in-progress: false
