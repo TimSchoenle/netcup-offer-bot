@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.3.6](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.5...v3.3.6) (2026-10-22)
+
+
+### Bug Fixes
+
+* **discord:** suppress mentions in webhook payloads ([#699](https://github.com/TimSchoenle/netcup-offer-bot/issues/699)) ([6670942](https://github.com/TimSchoenle/netcup-offer-bot/commit/6670942d4edb4c1d12c92433f69e96f9b3f390b8))
+* **http:** bound the feed fetch and webhook requests with timeouts ([#698](https://github.com/TimSchoenle/netcup-offer-bot/issues/698)) ([473ea5d](https://github.com/TimSchoenle/netcup-offer-bot/commit/473ea5da20e9984e13872a534057bc0406092d5c))
+
+
+### Build System
+
+* **deps:** allow Renovate updates for cargo-chef ([#694](https://github.com/TimSchoenle/netcup-offer-bot/issues/694)) ([7c9b937](https://github.com/TimSchoenle/netcup-offer-bot/commit/7c9b937ffe8345b5f1b38335deffc6b332513e39))
+* **renovate:** extend the shared rust-application preset ([#696](https://github.com/TimSchoenle/netcup-offer-bot/issues/696)) ([09bee19](https://github.com/TimSchoenle/netcup-offer-bot/commit/09bee1955deec8d1637ba00a6768c822b3fd9b70))
+* **toolchain:** pin Rust 1.99.1 in rust-toolchain.toml ([#690](https://github.com/TimSchoenle/netcup-offer-bot/issues/690)) ([4b63bb2](https://github.com/TimSchoenle/netcup-offer-bot/commit/4b63bb20bed043d38bdd0ce655ef570f1f1a4e16))
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#685](https://github.com/TimSchoenle/netcup-offer-bot/issues/685)) ([69304a7](https://github.com/TimSchoenle/netcup-offer-bot/commit/69304a7e5aee456eeee9ad0c7025f1d27b17ae0f))
+* **deps:** lock file maintenance ([#687](https://github.com/TimSchoenle/netcup-offer-bot/issues/687)) ([24a5324](https://github.com/TimSchoenle/netcup-offer-bot/commit/24a5324d77efd5b36c2098b6b6e9ebfd3f8ac626))
+* **deps:** lock file maintenance ([#688](https://github.com/TimSchoenle/netcup-offer-bot/issues/688)) ([ca68b4d](https://github.com/TimSchoenle/netcup-offer-bot/commit/ca68b4d7983eddc9675d9c0d6bef6268ee2a342c))
+* **deps:** lock file maintenance ([#689](https://github.com/TimSchoenle/netcup-offer-bot/issues/689)) ([bda70f2](https://github.com/TimSchoenle/netcup-offer-bot/commit/bda70f2e581f1b612e10f11a22b1003067a6436b))
+* **deps:** pin lukemathwalker/cargo-chef docker tag to c48fa69 ([#695](https://github.com/TimSchoenle/netcup-offer-bot/issues/695)) ([f19614c](https://github.com/TimSchoenle/netcup-offer-bot/commit/f19614ca5e2a05237c45c6070c584d46b918a102))
+* **deps:** update rust crate terrace-config to v0.15.2 ([#692](https://github.com/TimSchoenle/netcup-offer-bot/issues/692)) ([c7a9a01](https://github.com/TimSchoenle/netcup-offer-bot/commit/c7a9a010be5ee441a38dfb9e059e4d6d11bad6b1))
+
 ## [3.3.5](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.4...v3.3.5) (2026-10-17)
 
 
