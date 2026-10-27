@@ -120,6 +120,7 @@ jobs:
     # them would fail one of the two for a reason its log does not explain, so they queue.
     concurrency:
       group: branch-writes-${{ github.event.pull_request.head.repo.full_name || github.repository }}:${{ github.event.pull_request.head.ref || github.ref_name }}
+      queue: max
       cancel-in-progress: false
     permissions:
       contents: read # Required to fetch the commit the patch applies to; the write uses the App token

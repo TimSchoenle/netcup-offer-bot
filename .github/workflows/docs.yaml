@@ -46,6 +46,7 @@ env:
 # cancelled run here means a branch left holding a half-generated file.
 concurrency:
   group: branch-writes-${{ github.event.pull_request.head.repo.full_name || github.repository }}:${{ github.event.pull_request.head.ref || github.ref_name }}
+  queue: max
   cancel-in-progress: false
 
 permissions: {}
