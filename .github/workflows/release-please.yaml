@@ -4,9 +4,14 @@ on:
     branches:
       - master
 
+# Queued, never cancelled. A run that has reached the publish jobs can be part-way through pushing
+# and signing an image when the next push to the branch arrives; cancelling it there leaves a
+# published tag with no signature or attestation, and the tag is not created again by a later run.
+# Only a run still waiting can be replaced by a newer one, which is harmless: release-please reads
+# the whole branch, so the newer run sees every commit the replaced one would have.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions: { }
 
@@ -85,6 +90,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          # The tag release-please just cut, not the event commit: a queued run can release a
+          # newer merge than the one that triggered it.
+          ref: refs/tags/${{ needs.release-please.outputs.tag_name }}
           persist-credentials: false
 
       - name: Set up Docker Buildx
@@ -100,6 +108,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
+          # Read the revision and ref from the checked-out tag. The default `workflow` context takes
+          # them from the event, which on a queued run is a later commit than the one released.
+          context: git
           images: ${{ env.DOCKER_REPO }}
           tags: |
             type=raw,value=${{ needs.release-please.outputs.tag_name }}
@@ -188,6 +199,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          # The tag release-please just cut, not the event commit: a queued run can release a
+          # newer merge than the one that triggered it.
+          ref: refs/tags/${{ needs.release-please.outputs.tag_name }}
           persist-credentials: false
 
       - name: Install Cosign
@@ -441,6 +455,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          # The tag release-please just cut, not the event commit: a queued run can release a
+          # newer merge than the one that triggered it.
+          ref: refs/tags/${{ needs.release-please.outputs.tag_name }}
           persist-credentials: false
 
       - name: Sentry Release

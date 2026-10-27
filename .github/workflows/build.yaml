@@ -119,7 +119,8 @@ jobs:
     # pull request branch through the API, which rejects a commit whose parent has moved. Racing
     # them would fail one of the two for a reason its log does not explain, so they queue.
     concurrency:
-      group: branch-writes-${{ github.ref }}
+      group: branch-writes-${{ github.event.pull_request.head.repo.full_name || github.repository }}:${{ github.event.pull_request.head.ref || github.ref_name }}
+      queue: max
       cancel-in-progress: false
     permissions:
       contents: read # Required to fetch the commit the patch applies to; the write uses the App token
@@ -402,9 +403,20 @@ jobs:
           docker rm "${probe}" > /dev/null
           cmp ./from-image.json ./contract-out/contract.json
 
+      # `FROM scratch` has no shell, so the binary is the only thing in the image that can run,
+      # and it exits non-zero here because nothing supplied a configuration. Reaching that error
+      # is the assertion: the musl binary loaded and got as far as reading its configuration
+      # before it complained. A UPX stub that cannot start on the runner's kernel prints nothing
+      # at all, which a bare `|| true` used to pass. The binary takes no flags, so none is given.
       - name: Test Docker image runs
         run: |
-          docker run --rm netcup-offer-bot:test --version || true
+          set -euo pipefail
+          status=0
+          output="$(docker run --rm netcup-offer-bot:test 2>&1)" || status=$?
+          printf '%s\n' "${output}"
+          # Without a configuration the binary must fail, and fail on reading it.
+          test "${status}" -ne 0
+          grep -q 'Error: Config(' <<< "${output}"
 
       # Size warning above 150 MiB, Trivy scan, SARIF upload and the pull request report in one
       # step. `comment: summary` because a leg can only own a comment of its own: each one uploads
