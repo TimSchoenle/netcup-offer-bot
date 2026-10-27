@@ -411,9 +411,12 @@ jobs:
       - name: Test Docker image runs
         run: |
           set -euo pipefail
-          output="$(docker run --rm netcup-offer-bot:test 2>&1 || true)"
+          status=0
+          output="$(docker run --rm netcup-offer-bot:test 2>&1)" || status=$?
           printf '%s\n' "${output}"
-          printf '%s' "${output}" | grep -q 'Error: Config('
+          # Without a configuration the binary must fail, and fail on reading it.
+          test "${status}" -ne 0
+          grep -q 'Error: Config(' <<< "${output}"
 
       # Size warning above 150 MiB, Trivy scan, SARIF upload and the pull request report in one
       # step. `comment: summary` because a leg can only own a comment of its own: each one uploads
