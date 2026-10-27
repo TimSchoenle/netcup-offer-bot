@@ -4,9 +4,14 @@ on:
     branches:
       - master
 
+# Queued, never cancelled. A run that has reached the publish jobs can be part-way through pushing
+# and signing an image when the next push to the branch arrives; cancelling it there leaves a
+# published tag with no signature or attestation, and the tag is not created again by a later run.
+# Only a run still waiting can be replaced by a newer one, which is harmless: release-please reads
+# the whole branch, so the newer run sees every commit the replaced one would have.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions: { }
 
