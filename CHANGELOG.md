@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.3.7](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.6...v3.3.7) (2026-10-29)
+
+
+### Dependencies
+
+* **deps:** update alpine:3.24 docker digest to be26560 ([#709](https://github.com/TimSchoenle/netcup-offer-bot/issues/709)) ([82b784b](https://github.com/TimSchoenle/netcup-offer-bot/commit/82b784bbd392ee2b4cc5a8448b00dc4b4f32bf45))
+* **deps:** update getsentry/sentry-cli docker tag to v3.8.2 ([#702](https://github.com/TimSchoenle/netcup-offer-bot/issues/702)) ([ff2ef7f](https://github.com/TimSchoenle/netcup-offer-bot/commit/ff2ef7fa3ae40f43f32e61fcebabd68ab6ea8d1d))
+* **deps:** update rust crate terrace-config to v0.17.0 ([#703](https://github.com/TimSchoenle/netcup-offer-bot/issues/703)) ([2b21036](https://github.com/TimSchoenle/netcup-offer-bot/commit/2b21036a69fe4d0613b24dce2aaacf4dec33e4a9))
+* **deps:** update rust crate tokio to v1.54.1 ([#704](https://github.com/TimSchoenle/netcup-offer-bot/issues/704)) ([29ac149](https://github.com/TimSchoenle/netcup-offer-bot/commit/29ac149c3fe2d499a716f412bd13a1da331ed22d))
+
 ## [3.3.6](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.5...v3.3.6) (2026-10-22)
 
 
