@@ -22,6 +22,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read # Required to checkout the code
     steps:
@@ -57,6 +58,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read # Required to checkout the code
     steps:
@@ -78,6 +80,7 @@ jobs:
     name: Auto Format
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read # Required to checkout the code
     outputs:
@@ -115,6 +118,7 @@ jobs:
       name: ci
       deployment: false
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # Shared with docs.yaml rather than with the rest of this workflow: both jobs commit to the
     # pull request branch through the API, which rejects a commit whose parent has moved. Racing
     # them would fail one of the two for a reason its log does not explain, so they queue.
@@ -143,7 +147,7 @@ jobs:
         id: token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          app-id: ${{ secrets.ACTIONS_MAINTENANCE_APP_ID }}
+          client-id: ${{ secrets.ACTIONS_MAINTENANCE_APP_ID }}
           private-key: ${{ secrets.ACTIONS_MAINTENANCE_PRIVATE_KEY }}
           permission-contents: write # Required to commit the formatted files
 
@@ -161,6 +165,7 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read # Required to checkout the code
       checks: write # Required to annotate the commit with clippy warnings
@@ -183,6 +188,7 @@ jobs:
   doc:
     name: Doc
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read # Required to checkout the code
     env:
@@ -224,6 +230,7 @@ jobs:
   no-default-features:
     name: No Default Features
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read # Required to checkout the code
     steps:
@@ -259,6 +266,7 @@ jobs:
   config-contract:
     name: Config Contract
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read # Required to checkout the code
     steps:
@@ -284,6 +292,7 @@ jobs:
   docker-build-test:
     name: Docker Build and Test (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     needs: check
     strategy:
       fail-fast: false
@@ -367,7 +376,7 @@ jobs:
       # The toolchain is here rather than at the top of the job because only this step needs
       # it, and `cache: false` because this job also builds an image: a restored cache is
       # writable by any branch, and caching in a job that produces a runtime artefact is the
-      # cache-poisoning path zizmor flags. Only the generator is compiled, so there is nearly
+      # cache-poisoning path jactionlint flags. Only the generator is compiled, so there is nearly
       # nothing to save.
       - name: Install pinned toolchain
         uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
@@ -441,6 +450,7 @@ jobs:
   image-size-report:
     name: Image Size Report
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: docker-build-test
     if: always() && github.event_name == 'pull_request'
     permissions:
@@ -458,6 +468,7 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: check
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-dependency-review
