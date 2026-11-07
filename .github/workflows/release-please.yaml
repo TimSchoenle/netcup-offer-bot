@@ -27,6 +27,7 @@ jobs:
       deployment: false
     name: Release Please
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write # Required to create release commits and tags
       issues: write # Required to create release issues
@@ -47,7 +48,7 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          client-id: ${{ secrets.RELEASE_BOT_APP_ID }}
           private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
           permission-contents: write
           permission-issues: write
@@ -69,6 +70,7 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -97,6 +99,10 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+        with:
+          # This job pushes an image, so the buildx binary is downloaded fresh rather than restored
+          # from a cache any branch can write.
+          cache-binary: false
 
       - name: Login to Docker Hub
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
@@ -185,6 +191,7 @@ jobs:
     outputs:
       image_digest: ${{ steps.manifest.outputs.digest }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read # Required to checkout the code
       id-token: write # Required for OIDC authentication with Cosign
@@ -272,6 +279,7 @@ jobs:
         env:
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
+          set -o pipefail
           DIGEST=$(docker buildx imagetools inspect "${DOCKER_REPO}:${TAG}" --format '{{json .Manifest}}' | jq -r '.digest')
           echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
           echo "Multi-platform index digest: ${DIGEST}"
@@ -365,11 +373,11 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.manifest.outputs.digest }}
         run: |
-          images=""
+          images=()
           for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
+            images+=("${tag}@${DIGEST}")
           done
-          cosign sign --yes ${images}
+          cosign sign --yes "${images[@]}"
 
       # Attached to the digest, not to a tag: the referrer's subject is the exact build a chart
       # pins, and a tag can be moved. Attached verbatim — the bytes the generator wrote, with
@@ -444,6 +452,7 @@ jobs:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read # Required to checkout the code
     steps:
@@ -477,6 +486,7 @@ jobs:
     needs: [ release-please, docker-release ]
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read # Required to checkout the code
     steps:

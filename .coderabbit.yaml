@@ -113,7 +113,7 @@ reviews:
         no trailing period. release-please derives version bumps and the changelog from this title.
 
   tools:
-    # Both already run in CI (build.yaml clippy jobs, security.yml zizmor); duplicating them adds noise.
+    # Both already run in CI (build.yaml clippy jobs, security.yml jactionlint); duplicating them adds noise.
     clippy:
       enabled: false
     zizmor:
