@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.8](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.7...v3.3.8) (2026-11-07)
+
+
+### Dependencies
+
+* **deps:** update rust crate backtrace to v0.3.77 ([#713](https://github.com/TimSchoenle/netcup-offer-bot/issues/713)) ([06498e8](https://github.com/TimSchoenle/netcup-offer-bot/commit/06498e8c2a107eaeb658fabbcdafdcfddba11570))
+
 ## [3.3.7](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.6...v3.3.7) (2026-11-02)
 
 
