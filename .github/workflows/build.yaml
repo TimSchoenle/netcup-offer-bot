@@ -73,7 +73,8 @@ jobs:
   # Auto-format is split in two. `cargo fmt` honours the pull request's own `rust-toolchain.toml`
   # and `rustfmt.toml`, so this job runs code the pull request chose and holds no secret, no
   # environment and no write permission; it uploads what `cargo fmt` changed as a patch artifact.
-  # `fmt-commit` below holds the App token and commits that patch, running no repository code.
+  # `fmt-commit` in build-commit.yaml (a workflow_run workflow the pull request cannot edit) holds
+  # the App token and commits that patch, running no repository code.
   #
   # Pull requests only: a push to `master` has no pull request head to commit to.
   fmt:
@@ -83,8 +84,6 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read # Required to checkout the code
-    outputs:
-      changes_detected: ${{ steps.format.outputs.changes_detected }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
@@ -105,62 +104,18 @@ jobs:
         with:
           artifact_name: rust-auto-format
 
-  fmt-commit:
-    name: Commit Format
-    needs: fmt
-    # A fork's pull request gets no secrets, and its branch is not in this repository.
-    if: >-
-      github.event_name == 'pull_request' && needs.fmt.outputs.changes_detected == 'true' &&
-      github.event.pull_request.head.repo.full_name == github.repository
-    # Where ACTIONS_MAINTENANCE_APP_ID and ACTIONS_MAINTENANCE_PRIVATE_KEY live. Only this job,
-    # which runs no repository code, gets it.
-    environment:
-      name: ci
-      deployment: false
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    # Shared with docs.yaml rather than with the rest of this workflow: both jobs commit to the
-    # pull request branch through the API, which rejects a commit whose parent has moved. Racing
-    # them would fail one of the two for a reason its log does not explain, so they queue.
-    concurrency:
-      group: branch-writes-${{ github.event.pull_request.head.repo.full_name || github.repository }}:${{ github.event.pull_request.head.ref || github.ref_name }}
-      queue: max
-      cancel-in-progress: false
-    permissions:
-      contents: read # Required to fetch the commit the patch applies to; the write uses the App token
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
-        with:
-          egress-policy: audit
-
-      # Only git's objects are needed. Nothing in this checkout is executed.
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      # An App installation token, so the commit is verified and re-triggers the checks on the
-      # branch it lands on. Scoped to the one permission the commit needs.
-      - name: Generate Bot Token
-        id: token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: ${{ secrets.ACTIONS_MAINTENANCE_APP_ID }}
-          private-key: ${{ secrets.ACTIONS_MAINTENANCE_PRIVATE_KEY }}
-          permission-contents: write # Required to commit the formatted files
-
-      # `artifact_name` is spelled out rather than read from the format job's output, which a job
-      # running pull request code produced. `allowed_paths` admits only Rust
-      # sources, the only files `cargo fmt` rewrites; any other path fails this job and nothing is committed.
-      - name: Commit Format
-        uses: TimSchoenle/actions/actions/common/commit-patch@dc5b395636dc1954383f11af4062a08814e9b15a # tag=actions-common-commit-patch-v1.1.1
-        with:
-          token: ${{ steps.token.outputs.token }}
-          artifact_name: rust-auto-format
-          allowed_paths: '**/*.rs'
-          commit_message: 'style: auto-format rust code'
+      # `cargo fmt` reformats rather than fails, and build-commit.yaml commits the patch only after
+      # this whole run has finished, when every other required check on this head may already be
+      # green. Failing here keeps the unformatted head from merging; the run on the formatting
+      # commit decides. Nothing commits to a fork's branch, so a fork's pull request is not held,
+      # as it was not before the commit moved out of this run.
+      - name: Fail while a formatting commit is pending
+        if: >-
+          steps.format.outputs.changes_detected == 'true' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          echo "::error::cargo fmt changed files; build-commit.yaml commits them and the run on that commit decides. If no bot commit appears, run cargo fmt locally and push."
+          exit 1
 
   clippy:
     name: Clippy
