@@ -84,7 +84,7 @@ jobs:
           persist-credentials: false
 
       - name: Install pinned toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        uses: actions-rust-lang/setup-rust-toolchain@a188e68d0fd2bd36ad51dccb2b07ba6e75105f30 # v2.0.1
 
       # Two steps rather than one. The first is the only part of the payload this repository can
       # answer for itself — the configuration tables and the dialect they are written in, out of
@@ -176,7 +176,7 @@ jobs:
           persist-credentials: false
 
       - name: Install pinned toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        uses: actions-rust-lang/setup-rust-toolchain@a188e68d0fd2bd36ad51dccb2b07ba6e75105f30 # v2.0.1
 
       # Two steps rather than one. The first is the only part of the payload this repository can
       # answer for itself — the configuration tables and the dialect they are written in, out of
