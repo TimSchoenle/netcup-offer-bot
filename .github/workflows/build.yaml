@@ -162,7 +162,7 @@ jobs:
       # Saved from `master` only, for the reason given at `Build Docker image`. A pull request
       # restores `master`'s entry and saved a ~300 MB one of its own that nothing read.
       - name: Install pinned toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        uses: actions-rust-lang/setup-rust-toolchain@a188e68d0fd2bd36ad51dccb2b07ba6e75105f30 # v2.0.1
         with:
           cache-save-if: ${{ github.event_name == 'push' }}
 
@@ -201,7 +201,7 @@ jobs:
 
       # Saved from `master` only, as in `doc`.
       - name: Install pinned toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        uses: actions-rust-lang/setup-rust-toolchain@a188e68d0fd2bd36ad51dccb2b07ba6e75105f30 # v2.0.1
         with:
           cache-save-if: ${{ github.event_name == 'push' }}
 
@@ -334,7 +334,7 @@ jobs:
       # cache-poisoning path jactionlint flags. Only the generator is compiled, so there is nearly
       # nothing to save.
       - name: Install pinned toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
+        uses: actions-rust-lang/setup-rust-toolchain@a188e68d0fd2bd36ad51dccb2b07ba6e75105f30 # v2.0.1
         with:
           cache: false
 
@@ -391,7 +391,7 @@ jobs:
       # stay under the category they were raised in rather than being orphaned by the derived
       # `trivy-linux-amd64`.
       - name: Check Docker image
-        uses: TimSchoenle/actions/actions/docker/image-check@dc5b395636dc1954383f11af4062a08814e9b15a # tag=actions-docker-image-check-v1.1.9
+        uses: TimSchoenle/actions/actions/docker/image-check@e2799424abd778c41e7f6d1547fd402386ef398e # tag=actions-docker-image-check-v1.1.10
         with:
           image: netcup-offer-bot:test
           platform: ${{ matrix.platform }}
