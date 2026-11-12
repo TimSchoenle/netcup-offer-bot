@@ -62,7 +62,7 @@ backtrace = "0.3.76"
 # implementation. `tracing` is the layer `src/telemetry/sentry.rs` installs, and `backtrace` and
 # `debug-images` are what let a stripped musl release build symbolicate against the debug files
 # the image build uploads — see the `[profile.release]` note on `debug = "limited"` below.
-sentry = { version = "0.49.1", optional = true, default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
+sentry = { version = "0.49.5", optional = true, default-features = false, features = ["anyhow", "debug-images", "reqwest", "rustls", "backtrace", "tracing"] }
 chrono = { version = "0.4.43", default-features = false, features = ["clock", "std", "wasmbind", "serde"] }
 rss = { version = "2.0.12", features = ["validation"] }
 reqwest = { version = "0.13.1", default-features = false, features = ["json", "rustls", "stream", "gzip"] }
