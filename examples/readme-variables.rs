@@ -32,7 +32,7 @@ use terrace_config::schema::{Column, TomlExample};
 ///
 /// Not derivable from the manifest: the namespace is a Docker Hub account rather than the
 /// GitHub owner, and the two names differ.
-const IMAGE: &str = "timmi6790/netcup-offer-bot";
+const IMAGE: &str = "timschoenle/netcup-offer-bot";
 
 /// What the templates reference and no manifest holds.
 ///
