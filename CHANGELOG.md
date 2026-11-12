@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.9](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.8...v3.3.9) (2026-11-12)
+
+
+### Dependencies
+
+* **deps:** update rust crate sentry to v0.49.5 ([#719](https://github.com/TimSchoenle/netcup-offer-bot/issues/719)) ([f2b2086](https://github.com/TimSchoenle/netcup-offer-bot/commit/f2b208656e42e47bdea13b54c0babc8fd13e517f))
+
 ## [3.3.8](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.7...v3.3.8) (2026-11-12)
 
 
