@@ -103,56 +103,101 @@ pub(super) fn init(config: &SentryConfig) -> Result<Guard> {
     Ok(Some(::sentry::init(options)))
 }
 
-/// The `tracing` layer feeding the client, or `None` when nothing would reach it.
+/// The `tracing` layers feeding the client, or `None` when nothing would reach them.
 ///
-/// Its level filter is the more verbose of the two thresholds, so a record below both is never
-/// handed to the layer at all. `None` when the block is off, and also when both thresholds are
-/// `off`: a layer that ignores everything still costs a callsite check on every record.
+/// Up to three layers, one per kind of record Sentry keeps, each behind a filter that is decided per
+/// callsite from metadata alone, so a record no layer wants costs one cached interest check and
+/// nothing per emission. `None` when the block is off, and also when both thresholds are `off`:
+/// layers that ignore everything still cost a callsite check on every record.
 #[cfg(feature = "sentry")]
-pub(super) fn tracing_layer<S>(
-    config: &SentryConfig,
-) -> Option<
-    tracing_subscriber::filter::Filtered<
-        ::sentry::integrations::tracing::SentryLayer<S>,
-        tracing_subscriber::filter::LevelFilter,
-        S,
-    >,
->
+pub(super) fn tracing_layer<S>(config: &SentryConfig) -> Option<impl tracing_subscriber::Layer<S>>
 where
     S: tracing::Subscriber + for<'a> tracing_subscriber::registry::LookupSpan<'a>,
 {
-    use ::sentry::integrations::tracing::{EventFilter, default_span_filter};
-    use tracing_subscriber::Layer as _;
-    use tracing_subscriber::filter::LevelFilter;
+    use ::sentry::integrations::tracing::{BreadcrumbLayer, ErrorLayer, SpanLayer};
+    use tracing_subscriber::Layer;
+    use tracing_subscriber::filter::filter_fn;
 
     if !config.enabled {
         return None;
     }
-    let threshold = layer_threshold(config)?;
+    let routing = Routing::new(config)?;
 
-    let capture = config.capture_level;
-    let breadcrumb = config.breadcrumb_level;
-    // Nothing hands this process a trace to continue — it polls a feed and posts to a webhook —
-    // so at rate `0.0` there is no inherited sampling decision that building spans anyway could
-    // honour, and the sampler would discard every one of them. A service that *is* handed traces
-    // must not gate span creation like this, or it cuts the trace at itself.
-    let traces = config.traces_sample_rate > 0.0;
+    // First, as the SDK's migration guide orders them; and absent rather than filtered to
+    // nothing when tracing is off, for the reason the `None` above gives.
+    let spans = routing.traces.then(|| {
+        SpanLayer::new().with_filter(
+            filter_fn(move |metadata| metadata.is_span() && routing.is_span(*metadata.level()))
+                .with_max_level_hint(routing.span_threshold()),
+        )
+    });
+    // Breadcrumbs before errors, as the SDK requires for an event both accept to land in the
+    // error's trail. Here no event reaches both — `Routing` sends each to exactly one — so the
+    // order is the documented one rather than a load-bearing one.
+    let breadcrumbs = BreadcrumbLayer::new().with_filter(
+        filter_fn(move |metadata| metadata.is_event() && routing.is_breadcrumb(*metadata.level()))
+            .with_max_level_hint(routing.threshold),
+    );
+    let errors = ErrorLayer::new().with_filter(
+        filter_fn(move |metadata| metadata.is_event() && routing.is_error(*metadata.level()))
+            .with_max_level_hint(routing.threshold),
+    );
 
-    let layer = ::sentry::integrations::tracing::layer()
-        .event_filter(move |metadata| {
-            let level = *metadata.level();
-            if capture.accepts(level) {
-                EventFilter::Event
-            } else if breadcrumb.accepts(level) {
-                EventFilter::Breadcrumb
-            } else {
-                EventFilter::Ignore
-            }
+    // Spelled through the trait: `Option` has an inherent `and_then` that would win.
+    Some(Layer::and_then(spans, breadcrumbs).and_then(errors))
+}
+
+/// Which Sentry sink a record at a given level reaches, decided once from the configuration.
+///
+/// Kept apart from the layers so the decision is testable without installing a subscriber, and
+/// so the three filters above cannot disagree with each other about a threshold.
+#[cfg(feature = "sentry")]
+#[derive(Debug, Clone, Copy)]
+struct Routing {
+    capture: crate::config::SentryLevel,
+    breadcrumb: crate::config::SentryLevel,
+    /// The more verbose of the two thresholds: nothing below it reaches any sink.
+    threshold: tracing::Level,
+    /// Nothing hands this process a trace to continue — it polls a feed and posts to a webhook —
+    /// so at rate `0.0` there is no inherited sampling decision that building spans anyway could
+    /// honour, and the sampler would discard every one of them. A service that *is* handed
+    /// traces must not gate span creation like this, or it cuts the trace at itself.
+    traces: bool,
+}
+
+#[cfg(feature = "sentry")]
+impl Routing {
+    /// `None` when neither threshold accepts anything.
+    fn new(config: &SentryConfig) -> Option<Self> {
+        Some(Self {
+            capture: config.capture_level,
+            breadcrumb: config.breadcrumb_level,
+            threshold: layer_threshold(config)?,
+            traces: config.traces_sample_rate > 0.0,
         })
-        .span_filter(move |metadata| traces && default_span_filter(metadata))
-        .with_filter(LevelFilter::from_level(threshold));
+    }
 
-    Some(layer)
+    /// An event captured as a Sentry issue.
+    fn is_error(self, level: tracing::Level) -> bool {
+        self.capture.accepts(level)
+    }
+
+    /// An event kept as a breadcrumb: one the capture threshold did not already take, so no
+    /// record is reported both as an issue and as a line in that issue's own trail.
+    fn is_breadcrumb(self, level: tracing::Level) -> bool {
+        !self.capture.accepts(level) && self.breadcrumb.accepts(level)
+    }
+
+    /// A span recorded into a transaction: `INFO` or more severe, and within the threshold.
+    fn is_span(self, level: tracing::Level) -> bool {
+        self.traces && level <= self.span_threshold()
+    }
+
+    /// The least severe span level recorded. Capped at `INFO`, the span levels the SDK's legacy
+    /// combined layer recorded by default, so the migration off it changes no transaction.
+    fn span_threshold(self) -> tracing::Level {
+        self.threshold.min(tracing::Level::INFO)
+    }
 }
 
 /// Whether a client is installed.
@@ -254,7 +299,7 @@ pub(super) fn is_active(_guard: &Guard) -> bool {
 
 #[cfg(all(test, feature = "sentry"))]
 mod tests {
-    use super::{check_rate, layer_threshold, tracing_layer};
+    use super::{Routing, check_rate, layer_threshold, tracing_layer};
     use crate::config::{SentryConfig, SentryLevel};
     use tracing::Level;
 
@@ -269,7 +314,7 @@ mod tests {
     /// `capture_level = "error"` decide that no `INFO` record is ever kept as a breadcrumb,
     /// which empties the trail attached to every issue without changing a key anyone set.
     #[test]
-    fn the_layer_filter_is_the_more_verbose_of_the_two_thresholds() {
+    fn the_threshold_is_the_more_verbose_of_the_two_levels() {
         let config = SentryConfig {
             capture_level: SentryLevel::Error,
             breadcrumb_level: SentryLevel::Info,
@@ -314,6 +359,170 @@ mod tests {
 
         assert!(!config.enabled);
         assert!(tracing_layer::<tracing_subscriber::Registry>(&config).is_none());
+    }
+
+    /// Each event reaches exactly one sink: an issue, or a breadcrumb, never both. A record kept
+    /// as both would appear as the last line of its own issue's trail.
+    #[test]
+    fn an_event_is_routed_to_exactly_one_sink() {
+        let routing = Routing::new(&SentryConfig {
+            capture_level: SentryLevel::Warn,
+            breadcrumb_level: SentryLevel::Debug,
+            ..enabled()
+        })
+        .expect("both thresholds accept something");
+
+        for level in [Level::ERROR, Level::WARN] {
+            assert!(routing.is_error(level), "{level} is captured");
+            assert!(
+                !routing.is_breadcrumb(level),
+                "{level} is not also a breadcrumb"
+            );
+        }
+        for level in [Level::INFO, Level::DEBUG] {
+            assert!(!routing.is_error(level), "{level} is not captured");
+            assert!(routing.is_breadcrumb(level), "{level} is a breadcrumb");
+        }
+        assert!(!routing.is_error(Level::TRACE));
+        assert!(!routing.is_breadcrumb(Level::TRACE));
+    }
+
+    /// Spans are recorded only with a non-zero trace rate, never below `INFO`, and never below
+    /// the looser of the two thresholds.
+    #[test]
+    fn spans_follow_the_trace_rate_and_both_caps() {
+        let routing = |traces_sample_rate, breadcrumb_level| {
+            Routing::new(&SentryConfig {
+                traces_sample_rate,
+                capture_level: SentryLevel::Error,
+                breadcrumb_level,
+                ..enabled()
+            })
+            .expect("thresholds accept something")
+        };
+
+        let traced = routing(0.5, SentryLevel::Trace);
+        assert!(traced.is_span(Level::INFO));
+        assert!(!traced.is_span(Level::DEBUG), "capped at INFO");
+
+        let strict = routing(0.5, SentryLevel::Warn);
+        assert!(strict.is_span(Level::WARN));
+        assert!(!strict.is_span(Level::INFO), "capped at the threshold");
+
+        let untraced = routing(0.0, SentryLevel::Trace);
+        assert!(!untraced.is_span(Level::ERROR), "no spans at rate 0.0");
+    }
+
+    /// Collects every envelope the client would have sent.
+    #[derive(Default)]
+    struct Collect(std::sync::Mutex<Vec<::sentry::protocol::Envelope>>);
+
+    impl ::sentry::Transport for Collect {
+        fn send_envelope(&self, envelope: ::sentry::protocol::Envelope) {
+            self.0
+                .lock()
+                .expect("no test thread panics holding the lock")
+                .push(envelope);
+        }
+    }
+
+    /// What the installed layers send for one `INFO` span holding one event at each level, with
+    /// `capture_level = "error"` and `breadcrumb_level = "info"`.
+    fn report(traces_sample_rate: f32) -> Vec<::sentry::protocol::EnvelopeItem> {
+        use std::sync::Arc;
+        use tracing_subscriber::layer::SubscriberExt as _;
+
+        let transport = Arc::new(Collect::default());
+        let mut options = ::sentry::ClientOptions::new()
+            .traces_sample_rate(traces_sample_rate)
+            .transport(Arc::clone(&transport));
+        options.dsn = Some(
+            "https://public@sentry.invalid/1"
+                .parse()
+                .expect("a valid DSN"),
+        );
+        let hub = Arc::new(::sentry::Hub::new(
+            Some(Arc::new(options.into())),
+            Arc::new(::sentry::Scope::default()),
+        ));
+        let config = SentryConfig {
+            capture_level: SentryLevel::Error,
+            breadcrumb_level: SentryLevel::Info,
+            traces_sample_rate,
+            ..enabled()
+        };
+        let layer = tracing_layer::<tracing_subscriber::Registry>(&config)
+            .expect("an enabled block with live thresholds installs a layer");
+        let subscriber = tracing_subscriber::registry().with(layer);
+
+        ::sentry::Hub::run(hub, || {
+            tracing::subscriber::with_default(subscriber, || {
+                let _round = tracing::info_span!("round").entered();
+                tracing::debug!("debug");
+                tracing::info!("info");
+                tracing::warn!("warn");
+                tracing::error!("error");
+            });
+        });
+
+        transport
+            .0
+            .lock()
+            .expect("no test thread panics holding the lock")
+            .drain(..)
+            .flat_map(::sentry::protocol::Envelope::into_items)
+            .collect()
+    }
+
+    /// The wiring, end to end: one issue for the one `ERROR`, carrying the `INFO` and `WARN`
+    /// records as its trail and neither the `DEBUG` record nor itself.
+    #[test]
+    fn each_record_reaches_the_sink_its_level_selects() {
+        use ::sentry::protocol::{EnvelopeItem, Level as SentryEventLevel};
+
+        let items = report(0.0);
+        let events: Vec<_> = items
+            .iter()
+            .filter_map(|item| match item {
+                EnvelopeItem::Event(event) => Some(event),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(events.len(), 1, "exactly the ERROR record is an issue");
+        let event = events[0];
+        assert_eq!(event.level, SentryEventLevel::Error);
+
+        let trail: Vec<_> = event
+            .breadcrumbs
+            .values
+            .iter()
+            .map(|crumb| crumb.message.as_deref())
+            .collect();
+        assert_eq!(trail, [Some("info"), Some("warn")]);
+
+        assert!(
+            !items
+                .iter()
+                .any(|item| matches!(item, EnvelopeItem::Transaction(_))),
+            "no transaction at rate 0.0"
+        );
+    }
+
+    /// With a non-zero trace rate the `INFO` span becomes a transaction.
+    #[test]
+    fn a_traced_span_becomes_a_transaction() {
+        use ::sentry::protocol::EnvelopeItem;
+
+        let items = report(1.0);
+        let transactions: Vec<_> = items
+            .iter()
+            .filter_map(|item| match item {
+                EnvelopeItem::Transaction(transaction) => Some(transaction),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].name.as_deref(), Some("round"));
     }
 
     #[test]
