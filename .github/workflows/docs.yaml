@@ -73,7 +73,7 @@ jobs:
 
       # Both write nothing; each fails with the first differing line when its output is stale.
       - name: Verify docs/CONFIGURATION.md is current
-        uses: TimSchoenle/actions/actions/common/render-template@8da2713994ba2b5f542e7e3334db287b1e22854a # tag=actions-common-render-template-v1.2.9
+        uses: TimSchoenle/actions/actions/common/render-template@7c1147cf1e275c068a8484fa9a2dcb38a8b1f92f # tag=actions-common-render-template-v3.0.4
         with:
           template: .github/templates/CONFIGURATION.md.hbs
           output: docs/CONFIGURATION.md
@@ -81,7 +81,7 @@ jobs:
           check: true
 
       - name: Verify README.md is current
-        uses: TimSchoenle/actions/actions/common/render-template@8da2713994ba2b5f542e7e3334db287b1e22854a # tag=actions-common-render-template-v1.2.9
+        uses: TimSchoenle/actions/actions/common/render-template@7c1147cf1e275c068a8484fa9a2dcb38a8b1f92f # tag=actions-common-render-template-v3.0.4
         with:
           template: .github/templates/README.md.hbs
           output: README.md
