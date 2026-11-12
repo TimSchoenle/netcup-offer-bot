@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.3.8](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.7...v3.3.8) (2026-11-12)
+
+
+### Dependencies
+
+* **deps:** update alpine:3.24 docker digest to f59abe6 ([#724](https://github.com/TimSchoenle/netcup-offer-bot/issues/724)) ([55beba2](https://github.com/TimSchoenle/netcup-offer-bot/commit/55beba2abd6903f8e2bdb3095387a4a748ca076a))
+* **deps:** update rust crate backtrace to v0.3.77 ([#713](https://github.com/TimSchoenle/netcup-offer-bot/issues/713)) ([06498e8](https://github.com/TimSchoenle/netcup-offer-bot/commit/06498e8c2a107eaeb658fabbcdafdcfddba11570))
+* **deps:** update rust crate terrace-config to v0.18.1 ([#720](https://github.com/TimSchoenle/netcup-offer-bot/issues/720)) ([801fd09](https://github.com/TimSchoenle/netcup-offer-bot/commit/801fd09acf93e805762f5854cea298699efc9006))
+
 ## [3.3.7](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.6...v3.3.7) (2026-11-02)
 
 
