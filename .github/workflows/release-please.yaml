@@ -16,7 +16,7 @@ concurrency:
 permissions: { }
 
 env:
-  DOCKER_REPO: timmi6790/netcup-offer-bot
+  DOCKER_REPO: timschoenle/netcup-offer-bot
   HELM_REPO: TimSchoenle/helm-charts
   CHART_PATH: charts/netcup-offer-bot
 
@@ -134,7 +134,7 @@ jobs:
           build-args: |
             version=${{ needs.release-please.outputs.tag_name }}
             release=${{ needs.release-please.outputs.tag_name }}
-            vendor=Timmi6790
+            vendor=TimSchoenle
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
             VERSION=${{ needs.release-please.outputs.tag_name }}
