@@ -32,7 +32,7 @@ jobs:
           egress-policy: audit
 
       - name: Run Check
-        uses: TimSchoenle/actions/actions/rust/cargo-check@be7a69175612d9de514acc14bf55dda8e7ad2e57 # tag=actions-rust-cargo-check-v1.1.8
+        uses: TimSchoenle/actions/actions/rust/cargo-check@49acdef9979f343817ec2a85ddd25e5f34befc8b # tag=actions-rust-cargo-check-v2.0.0
 
   # The upload authenticates with this job's OIDC token, so the job needs neither the `ci`
   # environment nor its `CODECOV_TOKEN`. `.github/codecov.yml` decides what the Codecov statuses
@@ -51,7 +51,7 @@ jobs:
           egress-policy: audit
 
       - name: Run Coverage
-        uses: TimSchoenle/actions/actions/rust/coverage-codecov@daf766fd1ab9d48129210afc63b1a7353f6064fd # tag=actions-rust-coverage-codecov-v2.0.9
+        uses: TimSchoenle/actions/actions/rust/coverage-codecov@49acdef9979f343817ec2a85ddd25e5f34befc8b # tag=actions-rust-coverage-codecov-v2.1.0
         with:
           flags: rust
 
@@ -68,7 +68,7 @@ jobs:
           egress-policy: audit
 
       - name: Run Test
-        uses: TimSchoenle/actions/actions/rust/test@daf766fd1ab9d48129210afc63b1a7353f6064fd # tag=actions-rust-test-v1.1.5
+        uses: TimSchoenle/actions/actions/rust/test@49acdef9979f343817ec2a85ddd25e5f34befc8b # tag=actions-rust-test-v2.0.0
 
   clippy:
     name: Clippy
@@ -85,7 +85,7 @@ jobs:
 
       # The shared action only annotates findings; `-D warnings` is what fails the job on them.
       - name: Run Clippy
-        uses: TimSchoenle/actions/actions/rust/clippy@be7a69175612d9de514acc14bf55dda8e7ad2e57 # tag=actions-rust-clippy-v1.1.14
+        uses: TimSchoenle/actions/actions/rust/clippy@49acdef9979f343817ec2a85ddd25e5f34befc8b # tag=actions-rust-clippy-v2.0.0
         with:
           clippy_arguments: '--all-features --all-targets -- -D warnings'
 
@@ -190,7 +190,7 @@ jobs:
       # `image` is empty, so the two checks needing one are skipped and this job stays the
       # cheap half.
       - name: Check the committed contract and the Dockerfile LABEL region
-        uses: TimSchoenle/actions/actions/rust/config-contract@ea4465fbe2bec98efad19b63849f8d1ac67b5c88 # tag=actions-rust-config-contract-v1.4.0
+        uses: TimSchoenle/actions/actions/rust/config-contract@0b3967d3d992d12aa88da1f8facf412b162d5ab2 # tag=actions-rust-config-contract-v2.0.6
         with:
           example: config-contract
           features: config-schema
@@ -292,7 +292,7 @@ jobs:
 
       - name: Verify the image carries the contract labels
         id: contract
-        uses: TimSchoenle/actions/actions/rust/config-contract@ea4465fbe2bec98efad19b63849f8d1ac67b5c88 # tag=actions-rust-config-contract-v1.4.0
+        uses: TimSchoenle/actions/actions/rust/config-contract@0b3967d3d992d12aa88da1f8facf412b162d5ab2 # tag=actions-rust-config-contract-v2.0.6
         with:
           example: config-contract
           features: config-schema
@@ -343,7 +343,7 @@ jobs:
       # stay under the category they were raised in rather than being orphaned by the derived
       # `trivy-linux-amd64`.
       - name: Check Docker image
-        uses: TimSchoenle/actions/actions/docker/image-check@0701d3b35ad7e10e3159471c82f4743b67fdc01f # tag=actions-docker-image-check-v1.1.15
+        uses: TimSchoenle/actions/actions/docker/image-check@0b3967d3d992d12aa88da1f8facf412b162d5ab2 # tag=actions-docker-image-check-v1.1.17
         with:
           image: netcup-offer-bot:test
           platform: ${{ matrix.platform }}
@@ -370,7 +370,7 @@ jobs:
           egress-policy: audit
 
       - name: Comment image sizes on PR
-        uses: TimSchoenle/actions/actions/docker/image-check-summary@0701d3b35ad7e10e3159471c82f4743b67fdc01f # tag=actions-docker-image-check-summary-v2.0.5
+        uses: TimSchoenle/actions/actions/docker/image-check-summary@0b3967d3d992d12aa88da1f8facf412b162d5ab2 # tag=actions-docker-image-check-summary-v2.0.7
 
   dependency-review:
     name: Dependency Review
