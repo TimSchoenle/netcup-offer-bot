@@ -6,7 +6,7 @@ ARG USER_ID=1001
 ARG GROUP_ID=1001
 ARG EXECUTION_DIRECTORY=/app
 
-FROM lukemathwalker/cargo-chef:latest-rust-alpine@sha256:c48fa69aff194617af79ddc9473a58b946068012721979a9aef9c3e1466ccbd8 AS chef-base
+FROM lukemathwalker/cargo-chef:latest-rust-alpine@sha256:3dc65f92f830cadaa78d29ddcc8e23a22c5d6785f7758afdf50eba4e88238966 AS chef-base
 ARG EXECUTION_DIRECTORY
 
 RUN apk add --no-cache \
