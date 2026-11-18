@@ -55,7 +55,6 @@ required-features = ["config-schema"]
 [dependencies]
 anyhow = { version = "1.0.100", features = ["backtrace"] }
 thiserror = "2.0.18"
-backtrace = "0.3.76"
 # Optional, behind the `sentry` feature above; the feature list is unchanged from when this was
 # a hard dependency. `default-features = false` keeps the transport on the `reqwest`/`rustls`
 # stack this crate already links rather than pulling in a second HTTP client and a second TLS

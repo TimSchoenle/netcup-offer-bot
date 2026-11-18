@@ -1143,7 +1143,6 @@ name = "netcup-offer-bot"
 version = "3.3.9"
 dependencies = [
  "anyhow",
- "backtrace",
  "chrono",
  "prometheus 0.14.0",
  "prometheus_exporter",
