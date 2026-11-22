@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.3.10](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.9...v3.3.10) (2026-11-22)
+
+
+### Dependencies
+
+* **deps:** lock file maintenance ([#742](https://github.com/TimSchoenle/netcup-offer-bot/issues/742)) ([1a830ae](https://github.com/TimSchoenle/netcup-offer-bot/commit/1a830aecf6c70f742fcb458415513fa01a7f0ac3))
+* **deps:** update docker/dockerfile docker tag to v1.29 ([#737](https://github.com/TimSchoenle/netcup-offer-bot/issues/737)) ([33cd0a0](https://github.com/TimSchoenle/netcup-offer-bot/commit/33cd0a0625bb3663afea75b1f8b19d1e27c69473))
+* **deps:** update lukemathwalker/cargo-chef:latest-rust-alpine docker digest to 3dc65f9 ([#739](https://github.com/TimSchoenle/netcup-offer-bot/issues/739)) ([2d61463](https://github.com/TimSchoenle/netcup-offer-bot/commit/2d61463e504e7da157df52129b4bb45a1cfe9c63))
+* **deps:** update rust crate terrace-config to v0.18.2 ([#745](https://github.com/TimSchoenle/netcup-offer-bot/issues/745)) ([91ebe8a](https://github.com/TimSchoenle/netcup-offer-bot/commit/91ebe8aa87188e5761372cc67af0eb274aa37fe4))
+* **deps:** update rust to v1.100.0 ([#741](https://github.com/TimSchoenle/netcup-offer-bot/issues/741)) ([66adf1d](https://github.com/TimSchoenle/netcup-offer-bot/commit/66adf1d5f23e1e8b6c9d404e9792963cd16a32b7))
+
 ## [3.3.9](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.8...v3.3.9) (2026-11-12)
 
 
