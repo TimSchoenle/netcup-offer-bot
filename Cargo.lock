@@ -2144,8 +2144,8 @@ dependencies = [
 
 [[package]]
 name = "terrace-config"
-version = "0.18.2"
-source = "git+https://github.com/TimSchoenle/terrace-config?tag=v0.18.2#f5055b02d8aae20b82eceb9551b277059c808e39"
+version = "0.18.3"
+source = "git+https://github.com/TimSchoenle/terrace-config?tag=v0.18.3#f74afde7a6cff6faa43eac2ea6ee645ee91e43e4"
 dependencies = [
  "figment",
  "regex",
@@ -2158,8 +2158,8 @@ dependencies = [
 
 [[package]]
 name = "terrace-config-macros"
-version = "0.18.2"
-source = "git+https://github.com/TimSchoenle/terrace-config?tag=v0.18.2#f5055b02d8aae20b82eceb9551b277059c808e39"
+version = "0.18.3"
+source = "git+https://github.com/TimSchoenle/terrace-config?tag=v0.18.3#f74afde7a6cff6faa43eac2ea6ee645ee91e43e4"
 dependencies = [
  "proc-macro2",
  "quote",
