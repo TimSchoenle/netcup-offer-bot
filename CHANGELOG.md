@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.11](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.10...v3.3.11) (2026-11-27)
+
+
+### Dependencies
+
+* **deps:** update rust crate anyhow to v1.0.105 ([#749](https://github.com/TimSchoenle/netcup-offer-bot/issues/749)) ([fc9802e](https://github.com/TimSchoenle/netcup-offer-bot/commit/fc9802ecb4d0387635db6ba265d97430c6985723))
+* **deps:** update rust crate terrace-config to v0.18.3 ([#747](https://github.com/TimSchoenle/netcup-offer-bot/issues/747)) ([cdb595f](https://github.com/TimSchoenle/netcup-offer-bot/commit/cdb595ffe3b3eabdb07c6de123ed1e31de90c563))
+
 ## [3.3.10](https://github.com/TimSchoenle/netcup-offer-bot/compare/v3.3.9...v3.3.10) (2026-11-22)
 
 
